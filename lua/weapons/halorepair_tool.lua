@@ -91,7 +91,7 @@ if CLIENT then
 			if(IsValid(EyeTrace.Entity)) then
 				local e = EyeTrace.Entity;
 				local class = e:GetClass();
-				if(GetStarWarsVehicle(class) or e.IsSWVehicle) then
+				if(GetHaloVehicle(class) or e.IsHALOVehicle) then
 					return e:GetNWInt("Health"), e.StartHealth;
 				end
 			end
@@ -101,9 +101,9 @@ if CLIENT then
 
 end
 
-function GetStarWarsVehicle(veh)
+function GetHaloVehicle(veh)
     
-    local Vehicles = list.Get("SWVehicles");
+    local Vehicles = list.Get("HaloVehicles");
 	for k,v in pairs(Vehicles) do
 		if(v.ClassName == veh) then
             return true;
@@ -128,7 +128,7 @@ function SWEP:PrimaryAttack()
 		if(IsValid(EyeTrace.Entity)) then
 			local e = EyeTrace.Entity;
 			local class = e:GetClass();
-			if(GetStarWarsVehicle(class) or e.IsSWVehicle) then
+			if(GetHaloVehicle(class) or e.IsHALOVehicle) then
 				local distance = (e:GetPos() - self.Owner:GetPos()):Length();
 				if(distance <= 300) then
 					local Health = e:GetNWInt("Health");

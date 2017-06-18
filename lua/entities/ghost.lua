@@ -12,7 +12,7 @@ ENT.AdminSpawnable = false;
 
 ENT.Vehicle = "Ghost";
 ENT.EntModel = "models/helios/ghost/ghost.mdl";
-ENT.StartHealth = 500;
+ENT.StartHealth = 800;
 ENT.Allegiance = "Covenant";
 
 list.Set("HaloVehicles", ENT.PrintName, ENT);
@@ -44,7 +44,7 @@ function ENT:Initialize()
 	}
 	
 	self.ForwardSpeed = -750;
-	self.BoostSpeed = -1250
+	self.BoostSpeed = -1150
 	self.AccelSpeed = 10;
 	self.HoverMod = 0.1;
 	self.StartHover = 30;
@@ -210,7 +210,7 @@ if CLIENT then
 			local WeaponsPos = {self:GetPos()};
 			
 			HALO_CovenantHoverReticles(self,WeaponsPos)
-			HALO_Speeder_DrawHull(500)
+			HALO_Speeder_DrawHull(800)
 			HALO_Speeder_DrawSpeedometer()
 
 		end

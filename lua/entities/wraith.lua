@@ -13,7 +13,7 @@ ENT.AdminOnly = false;
 ENT.Vehicle = "wraith";
 ENT.EntModel = "models/helios/wraith/wraith_open.mdl";
  
-ENT.StartHealth = 2000;
+ENT.StartHealth = 3000;
  
 list.Set("HaloVehicles", ENT.PrintName, ENT);
 
@@ -333,7 +333,7 @@ if CLIENT then
             local WeaponsPos = {self:GetPos()};
            
             HALO_Cannon_Reticles(self,WeaponsPos)
-            HALO_Speeder_DrawHull(2000)
+            HALO_Speeder_DrawHull(3000)
 			HALO_Speeder_DrawSpeedometer()
  
         end

@@ -2,7 +2,7 @@ ENT.RenderGroup = RENDERGROUP_OPAQUE
 ENT.Base = "haloveh_base"
 ENT.Type = "vehicle"
 
-ENT.PrintName = "Stalwart-Class Frigate"
+ENT.PrintName = "Paris-Class Frigate"
 ENT.Author = "Cody Evans"
 --- BASE AUTHOR: Liam0102 ---
 ENT.Category = "Halo Vehicles: UNSC"

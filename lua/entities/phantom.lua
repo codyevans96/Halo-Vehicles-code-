@@ -12,7 +12,7 @@ ENT.AdminSpawnable = false;
 
 ENT.EntModel = "models/helios/phantom/phantom_open.mdl"
 ENT.Vehicle = "phantom"
-ENT.StartHealth = 2000;
+ENT.StartHealth = 5000;
 ENT.Allegiance = "Covenant";
 
 ENT.DoorsModel = "models/helios/phantom/phantom.mdl"
@@ -61,7 +61,7 @@ function ENT:Initialize()
 	self.Cooldown = 2;
 	self.LandOffset = Vector(0,0,30);
 	
-	self.Bullet = HALOCreateBulletStructure(50,"plasma");
+	self.Bullet = HALOCreateBulletStructure(80,"red");
 	self.FireDelay = 0.25;
 	
 	self.SeatPos = {
@@ -315,14 +315,14 @@ if CLIENT then
 		if(Flying) then
 			if(IsValid(self)) then
 				local fpvPos = self:GetPos()+self:GetUp()*155+self:GetForward()*210;
-				View = HALOVehicleView(self,1050,500,fpvPos,true);		
+				View = HALOVehicleView(self,1050,530,fpvPos,true);		
 				return View;
 			end
 		elseif(Sitting) then
 			local v = p:GetNWEntity("PhantomSeat");	
 			if(IsValid(v)) then
 				if(v:GetThirdPersonMode()) then
-					View = HALOVehicleView(self,800,350,fpvPos);		
+					View = HALOVehicleView(self,800,380,fpvPos);		
 					return View;
 				end
 			end
@@ -337,7 +337,7 @@ if CLIENT then
 		local Flying = p:GetNWBool("FlyingPhantom");
 		local self = p:GetNWEntity("Phantom");
 		if(Flying and IsValid(self)) then
-			HALO_HUD_DrawHull(2000);
+			HALO_HUD_DrawHull(5000);
 			HALO_CovenantReticles(self);
 			HALO_HUD_Compass(self);
 			HALO_HUD_DrawSpeedometer();

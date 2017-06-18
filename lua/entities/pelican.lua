@@ -12,7 +12,7 @@ ENT.AdminSpawnable = false;
 
 ENT.EntModel = "models/helios/pelican/pelican_landed.mdl"
 ENT.Vehicle = "pelican"
-ENT.StartHealth = 2000;
+ENT.StartHealth = 5000;
 ENT.Allegiance = "UNSC";
 
 ENT.DoorsModel = "models/helios/pelican/pelican.mdl"
@@ -357,7 +357,7 @@ if CLIENT then
 		local Flying = p:GetNWBool("FlyingPelican");
 		local self = p:GetNWEntity("Pelican");
 		if(Flying and IsValid(self)) then
-			HALO_HUD_DrawHull(2000);
+			HALO_HUD_DrawHull(5000);
 			HALO_UNSCReticles(self);
 			HALO_HUD_Compass(self,x,y);
 			HALO_HUD_DrawSpeedometer();

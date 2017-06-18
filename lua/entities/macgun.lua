@@ -13,7 +13,7 @@ ENT.AdminOnly = false;
 ENT.Vehicle = "macgun";
 ENT.EntModel = "models/helios/mac/mac.mdl";
  
-ENT.StartHealth = 2000;
+ENT.StartHealth = 6000;
  
 list.Set("HaloVehicles", ENT.PrintName, ENT);
 
@@ -291,7 +291,7 @@ if CLIENT then
             local WeaponsPos = {self:GetPos()};
            
             HALO_Cannon_Reticles(self,WeaponsPos)
-            HALO_Speeder_DrawHull(2000)
+            HALO_Speeder_DrawHull(6000)
  
         end
     end

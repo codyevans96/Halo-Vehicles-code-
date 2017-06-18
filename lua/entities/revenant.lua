@@ -12,7 +12,7 @@ ENT.AdminSpawnable = false;
 
 ENT.Vehicle = "Revenant";
 ENT.EntModel = "models/helios/revenant/revenant.mdl";
-ENT.StartHealth = 800;
+ENT.StartHealth = 1500;
 ENT.Allegiance = "Covenant";
 
 list.Set("HaloVehicles", ENT.PrintName, ENT);
@@ -196,7 +196,7 @@ if CLIENT then
 		local self = p:GetNWEntity("Revenant");
 		if(Flying and IsValid(self)) then
 				
-			HALO_Speeder_DrawHull(800)
+			HALO_Speeder_DrawHull(1500)
 			HALO_Speeder_DrawSpeedometer()
 	
 		end

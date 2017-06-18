@@ -55,7 +55,7 @@ function ENT:Initialize()
 	self.HasWings = false;
 	self.CanShoot = false;
 	self.Bullet = HALOCreateBulletStructure(75,"unsc");
-	self.FireDelay = 0.1;
+	self.FireDelay = 0.15;
 	self.NextBlast = 1;
 	self.WarpDestination = Vector(0,0,0);
 	if(WireLib) then

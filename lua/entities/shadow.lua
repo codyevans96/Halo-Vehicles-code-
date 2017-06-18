@@ -12,7 +12,7 @@ ENT.AdminSpawnable = false;
 
 ENT.Vehicle = "shadow";
 ENT.EntModel = "models/helios/shadow/shadow.mdl";
-ENT.StartHealth = 1500;
+ENT.StartHealth = 2000;
 
 list.Set("HaloVehicles", ENT.PrintName, ENT);
 
@@ -371,7 +371,7 @@ surface.SetDrawColor( color_white )
 			surface.SetMaterial( Material( "hud/reticle_cov.png", "noclamp" ) )
 			surface.DrawTexturedRectUV( x , y, w, h, 0, 0, 1, 1 )
 	
-			HALO_Speeder_DrawHull(1500)
+			HALO_Speeder_DrawHull(2000)
 			HALO_Speeder_DrawSpeedometer()
 	
 		end

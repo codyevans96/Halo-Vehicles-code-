@@ -12,7 +12,7 @@ ENT.AdminSpawnable = false;
 
 ENT.EntModel = "models/helios/banshee/banshee.mdl"
 ENT.Vehicle = "banshee"
-ENT.StartHealth = 800;
+ENT.StartHealth = 1000;
 ENT.Allegiance = "Covenant";
 
 list.Set("HaloVehicles", ENT.PrintName, ENT);
@@ -197,7 +197,7 @@ if CLIENT then
 		local Flying = p:GetNWBool("FlyingBanshee");
 		local self = p:GetNWEntity("Banshee");
 		if(Flying and IsValid(self)) then
-			HALO_HUD_DrawHull(800);
+			HALO_HUD_DrawHull(1000);
 			HALO_CovenantReticles(self);
 			HALO_BlastIcon(self,5);
 			HALO_HUD_Compass(self,x,y); // Draw the compass/radar

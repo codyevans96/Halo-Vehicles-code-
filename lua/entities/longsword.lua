@@ -12,7 +12,7 @@ ENT.AdminSpawnable = false;
 
 ENT.EntModel = "models/helios/longsword/longsword_open.mdl"
 ENT.Vehicle = "longsword"
-ENT.StartHealth = 2000;
+ENT.StartHealth = 4000;
 ENT.Allegiance = "UNSC";
 
 ENT.WingsModel = "models/helios/longsword/longsword_open.mdl"
@@ -337,7 +337,7 @@ if CLIENT then
 		local Flying = p:GetNWBool("FlyingLongsword");
 		local self = p:GetNWEntity("Longsword");
 		if(Flying and IsValid(self)) then
-			HALO_HUD_DrawHull(2000);
+			HALO_HUD_DrawHull(4000);
 			HALO_UNSCReticles(self);
 			HALO_BlastIcon(self,15);			
 			HALO_HUD_Compass(self,x,y); // Draw the compass/radar

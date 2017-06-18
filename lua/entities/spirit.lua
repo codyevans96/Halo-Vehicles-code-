@@ -12,7 +12,7 @@ ENT.AdminSpawnable = false;
 
 ENT.EntModel = "models/helios/spirit/spirit_open.mdl"
 ENT.Vehicle = "spirit"
-ENT.StartHealth = 2000;
+ENT.StartHealth = 5000;
 ENT.Allegiance = "Covenant";
 
 ENT.DoorsModel = "models/helios/spirit/spirit.mdl"
@@ -61,7 +61,7 @@ function ENT:Initialize()
 	self.Cooldown = 2;
 	self.LandOffset = Vector(0,0,1);
 	
-	self.Bullet = HALOCreateBulletStructure(40,"plasma");
+	self.Bullet = HALOCreateBulletStructure(40,"red");
 	self.FireDelay = 0.15;
 	
 	self.SeatPos = {
@@ -317,7 +317,7 @@ if CLIENT then
 		local Flying = p:GetNWBool("FlyingSpirit");
 		local self = p:GetNWEntity("Spirit");
 		if(Flying and IsValid(self)) then
-			HALO_HUD_DrawHull(2000);
+			HALO_HUD_DrawHull(5000);
 			HALO_HUD_Compass(self);
 			HALO_HUD_DrawSpeedometer();
 			HALO_CovenantReticles(self);

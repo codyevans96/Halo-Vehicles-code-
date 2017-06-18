@@ -13,7 +13,7 @@ ENT.AdminSpawnable = false;
 ENT.EntModel = "models/helios/hornet/hornet.mdl"
 ENT.FlyModel = "models/helios/hornet/hornet_fwd.mdl"
 ENT.Vehicle = "hornet"
-ENT.StartHealth = 800;
+ENT.StartHealth = 1000;
 ENT.Allegiance = "UNSC";
 
 list.Set("HaloVehicles", ENT.PrintName, ENT);
@@ -330,7 +330,7 @@ if CLIENT then
 		local Flying = p:GetNWBool("FlyingHornet");
 		local self = p:GetNWEntity("Hornet");
 		if(Flying and IsValid(self)) then
-			HALO_HUD_DrawHull(800);
+			HALO_HUD_DrawHull(1000);
 			HALO_UNSCReticles(self);
 			HALO_BlastIcon(self,5);
 			HALO_HUD_Compass(self,x,y); // Draw the compass/radar

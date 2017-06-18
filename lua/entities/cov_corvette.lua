@@ -163,7 +163,7 @@ function ENT:Think()
 						self:GetPos() + self:GetForward() * -240 + self:GetRight() * 935 + self:GetUp() * -200,
 						self:GetPos() + self:GetForward() * -240 + self:GetRight() * -935 + self:GetUp() * -200,
                     }
-                    self:FireCOVCorvetteBlast(self.BlastPositions[self.NextBlast], false, 750, 750, true, 8, Sound("weapons/wraith_shoot.wav"));
+                    self:FireCOVCorvetteBlast(self.BlastPositions[self.NextBlast], false, 1200, 1200, true, 8, Sound("weapons/wraith_shoot.wav"));
 					self.NextBlast = self.NextBlast + 1;
 					if(self.NextBlast == 7) then
 						self.NextUse.FireBlast = CurTime()+10;
