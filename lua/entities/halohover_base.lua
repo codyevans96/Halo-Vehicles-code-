@@ -582,33 +582,16 @@ function ENT:PhysicsSimulate( phys, deltatime )
 				if(self.Boosting) then
 					self.num = self.BoostSpeed;
 					util.ScreenShake(self.DriverChair:GetPos(),5,60,0.1,100)
-				elseif(self.Pilot:KeyDown(IN_JUMP)) then
-					self.num = 0;
 				elseif(self.Pilot:KeyDown(IN_FORWARD)) then
-					self.num = self.num + self.ForwardSpeed/100;
+					self.num = self.ForwardSpeed;
 				elseif(self.Pilot:KeyDown(IN_BACK)) then
-					self.num = self.num - self.ForwardSpeed/100;
+					self.num = -self.ForwardSpeed;
 				elseif(self.Pilot:KeyDown(IN_FORWARD) and self.Pilot:KeyDown(IN_SPEED) and self.SpeederClass == 2) then
-					self.num = self.num + self.BoostSpeed/100;
-				end
-				if(!self.Boosting) then
-					local min,max;
-					if(self.CanBack) then
-						min = self.ForwardSpeed/2 * -1;
-					else
-						min = 0;
-					end
-					max = self.ForwardSpeed;
-					if(self.Pilot:KeyDown(IN_SPEED) and self.SpeederClass == 2) then
-						max = self.BoostSpeed;
-					end
-					if(self.ForwardSpeed > 0) then
-						self.num = math.Clamp(self.num,min,max)
-					elseif(self.ForwardSpeed < 0) then
-						self.num = math.Clamp(self.num,max,min)
-					end
-				end				
-				self.Accel.FWD = math.Approach(self.Accel.FWD,self.num,self.AccelSpeed);
+					self.num = self.BoostSpeed;
+                else
+                    self.num = 0;
+				end			
+				self.Accel.FWD =  math.Approach(self.Accel.FWD,self.num,self.AccelSpeed);
 				
 				self:SetNWInt("Speed",self.Accel.FWD);
 				if(IsValid(self.Pilot)) then
