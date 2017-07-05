@@ -39,8 +39,8 @@ function ENT:Initialize()
     local driverAng = self:GetAngles()+Angle(0,-90,0);
     self:SpawnChairs(driverPos,driverAng,false)
    
-    self.ForwardSpeed = 600;
-    self.BoostSpeed = 600;
+    self.ForwardSpeed = 300;
+    self.BoostSpeed = 300;
     self.AccelSpeed = 8;
     self.WeaponLocations = {
 		Left = self:GetPos()+self:GetForward()*105+self:GetUp()*50+self:GetRight()*-40,
@@ -139,12 +139,14 @@ function ENT:Think()
             if(p <= -0 and p >= -40) then
                 p = -0;
             elseif(p >= -300 and p <= 280) then
-                p = -300;
+                p = 0;
             end
-            self.Cannon:SetAngles(Angle(p,self:GetAngles().y,self:GetAngles().r));
+            self.Cannon:SetAngles(Angle(p,aim.y+0,0));
             if(self.Pilot:KeyDown(IN_ATTACK2)) then
                 self:FireBlast(self.Cannon:GetPos()+self.Cannon:GetForward()*0+self:GetUp()*15,true,100,self.Cannon:GetAngles():Forward());
             end
+			lastY = aim.y;
+			self:NextThink(CurTime());
         end
        
     end

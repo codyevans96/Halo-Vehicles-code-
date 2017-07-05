@@ -40,7 +40,7 @@ function ENT:Initialize()
 	self:SpawnChairs(driverPos,driverAng,false);
 	
 	self.ForwardSpeed = -300;
-	self.BoostSpeed = -650
+	self.BoostSpeed = -550
 	self.AccelSpeed = 6;
 	self.HoverMod = 0.5;
 	self.SpeederClass = 2;

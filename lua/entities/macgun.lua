@@ -67,7 +67,7 @@ function ENT:FireBlast(pos,gravity,vel,ang)
         e:Prepare(self,Sound("weapons/hevplasma_shoot.wav"),gravity,vel,ang);
         e:SetColor(Color(255,255,255,1));
        
-        self.NextUse.FireBlast = CurTime() + 8;
+        self.NextUse.FireBlast = CurTime() + 5;
     end
    
 end
@@ -153,7 +153,7 @@ function ENT:Think()
             if(p <= -0 and p >= -40) then
                 p = -0;
             elseif(p >= -300 and p <= 280) then
-                p = -300;
+                p = 3;
             end
             self.Cannon:SetAngles(Angle(p,self:GetAngles().y,self:GetAngles().r));
             if(self.Pilot:KeyDown(IN_ATTACK)) then
@@ -288,9 +288,32 @@ if CLIENT then
         local Flying = p:GetNWBool("FlyingMacgun");
         local self = p:GetNWEntity("Macgun");
         if(Flying and IsValid(self)) then      
-            local WeaponsPos = {self:GetPos()};
+surface.SetDrawColor( color_white )	
+			local CannonPos = Cannon:GetPos()+Cannon:GetForward()*-140;
+			local tr = util.TraceLine({
+				start = CannonPos,
+				endpos = CannonPos + Cannon:GetForward()*10000,
+				filter = {self,Cannon},
+			});
+			
+			local vpos = tr.HitPos;
+			local screen = vpos:ToScreen();
+			local x,y;
+			for k,v in pairs(screen) do
+				if(k == "x") then
+					x = v;
+				elseif(k == "y") then
+					y = v;
+				end
+			end
+			
+			local w = ScrW()/100*2;
+			local h = w;
+			x = x - w/2;
+			y = y - h/2;
+			surface.SetMaterial( Material( "hud/reticle_heavy.png", "noclamp" ) )
+			surface.DrawTexturedRectUV( x , y, w, h, 0, 0, 1, 1 )
            
-            HALO_Cannon_Reticles(self,WeaponsPos)
             HALO_Speeder_DrawHull(6000)
  
         end

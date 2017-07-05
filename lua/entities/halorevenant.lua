@@ -2,7 +2,7 @@ ENT.RenderGroup = RENDERGROUP_BOTH
 ENT.Base = "halohover_base"
 ENT.Type = "vehicle"
 
-ENT.PrintName = "T-32 Ghost"
+ENT.PrintName = "T-48 Revenant"
 ENT.Author = "Cody Evans"
 --- BASE AUTHOR: Liam0102 ---
 ENT.Category = "Halo Vehicles: Covenant"
@@ -10,9 +10,9 @@ ENT.AutomaticFrameAdvance = true
 ENT.Spawnable = false;
 ENT.AdminSpawnable = false;
 
-ENT.Vehicle = "Ghost";
-ENT.EntModel = "models/helios/ghost/ghost.mdl";
-ENT.StartHealth = 800;
+ENT.Vehicle = "halorevenant";
+ENT.EntModel = "models/helios/revenant/revenant.mdl";
+ENT.StartHealth = 1500;
 ENT.Allegiance = "Covenant";
 
 list.Set("HaloVehicles", ENT.PrintName, ENT);
@@ -20,11 +20,11 @@ list.Set("HaloVehicles", ENT.PrintName, ENT);
 if SERVER then
 
 ENT.NextUse = {Use = CurTime(),Fire = CurTime()};
-ENT.FireSound = Sound("weapons/ghost_shoot.wav");
+ENT.FireSound = Sound("weapons/xwing_shoot.wav");
 
 AddCSLuaFile();
 function ENT:SpawnFunction(pl, tr)
-	local e = ents.Create("ghost");
+	local e = ents.Create("halorevenant");
 	e:SetPos(tr.HitPos + Vector(0,0,10));
 	e:SetAngles(Angle(0,pl:GetAimVector():Angle().Yaw+180,0));
 	e:Spawn();
@@ -33,32 +33,41 @@ function ENT:SpawnFunction(pl, tr)
 end
 
 function ENT:Initialize()
+	self.SeatClass = "phx_seat2";
 	self.BaseClass.Initialize(self);
-	local driverPos = self:GetPos()+self:GetUp()*19+self:GetForward()*42;
+	local driverPos = self:GetPos()+self:GetUp()*13+self:GetForward()*39+self:GetRight()*16;
 	local driverAng = self:GetAngles()+Angle(0,90,0);
-	self.SeatClass = "phx_seat3"
-	self:SpawnChairs(driverPos,driverAng,false)
-	self.WeaponLocations = {
-		Left = self:GetPos()+self:GetForward()*-75+self:GetUp()*19+self:GetRight()*-20,
-		Right = self:GetPos()+self:GetForward()*-75+self:GetUp()*19+self:GetRight()*20,
-	}
-	
-	self.ForwardSpeed = -450;
-	self.BoostSpeed = -650
-	self.AccelSpeed = 10;
-	self.HoverMod = 0.1;
-	self.StartHover = 30;
+	local passPos = self:GetPos()+self:GetUp()*19+self:GetForward()*32+self:GetRight()*-19
+	self:SpawnChairs(driverPos,driverAng,true,passPos,driverAng);
 	self.CanBack = true;
-	self.Bullet = HALOCreateBulletStructure(70,"plasma");
-	self.FireDelay = 0.1;
+	self.ForwardSpeed = -350;
+	self.BoostSpeed = -550
+	self.AccelSpeed = 8;
+	self.StartHover = 25;
 	self.DontOverheat = true;
-	self.WeaponDir = self:GetAngles():Forward()*-1;
-	self:SpawnWeapons();
-	self.FireGroup = {"Left","Right",};
-	self.StandbyHoverAmount = 30;
+	self.CanBack = true;
+	self.StandbyHoverAmount = 25;
 	self.HoverMod = 10;
-	self.CanShoot = true;
+	self:Rotorwash(false);
 
+end
+
+
+function ENT:OnTakeDamage(dmg)
+
+	local health=self:GetNetworkedInt("Health")-(dmg:GetDamage()/2)
+
+	self:SetNWInt("Health",health);
+	
+	if(health<100) then
+		self.CriticalDamage = true;
+		self:SetNWBool("CriticalDamage",true);
+	end
+	
+	
+	if((health)<=0) then
+		self:Bang()
+	end
 end
 
 function ENT:Boost()
@@ -76,15 +85,14 @@ end
 local ZAxis = Vector(0,0,1);
 
 function ENT:PhysicsSimulate( phys, deltatime )
-	self.BackPos = self:GetPos()+self:GetForward()*100+self:GetUp()*0
-	self.FrontPos = self:GetPos()+self:GetForward()*-100+self:GetUp()*0
-	self.MiddlePos = self:GetPos()+self:GetUp()*0;		
+	self.BackPos = self:GetPos()+self:GetForward()*80+self:GetUp()*5
+	self.FrontPos = self:GetPos()+self:GetForward()*-100+self:GetUp()*5
+	self.MiddlePos = self:GetPos()+self:GetUp()*5;
 	if(self.Inflight) then
 		local UP = ZAxis;
 		self.RightDir = self.Entity:GetForward():Cross(UP):GetNormalized();
 		self.FWDDir = self.Entity:GetForward();	
-		
-
+				
 		self:RunTraces();
 
 		self.ExtraRoll = Angle(0,0,self.YawAccel / 2);
@@ -99,24 +107,29 @@ function ENT:PhysicsSimulate( phys, deltatime )
 
 	
 	self.BaseClass.PhysicsSimulate(self,phys,deltatime);
+	
+
 end
 
 end
 
 if CLIENT then
 	ENT.Sounds={
-		Engine=Sound("vehicles/ghost_fly.wav"),
+		Engine=Sound("vehicles/revenant_fly.wav"),
 	}
 	
 	local Health = 0;
-	local Speed = 0;
 	function ENT:Think()
 		self.BaseClass.Think(self);
 		local p = LocalPlayer();
 		local Flying = p:GetNWBool("Flying"..self.Vehicle);
 		if(Flying) then
 			Health = self:GetNWInt("Health");
-			Speed = self:GetNWInt("Speed");
+			local EnginePos = {
+				self:GetPos()+self:GetForward()*120+self:GetRight()*55+self:GetUp()*20,
+				self:GetPos()+self:GetForward()*120+self:GetRight()*-55+self:GetUp()*20,
+			}
+			self:Effects(EnginePos)
 		end
 		
 	end
@@ -125,15 +138,29 @@ if CLIENT then
 	function CalcView()
 		
 		local p = LocalPlayer();
-		local self = p:GetNWEntity("Ghost", NULL)
+		local self = p:GetNWEntity("HaloRevenant", NULL)
 		local DriverSeat = p:GetNWEntity("DriverSeat",NULL);
 		local PassengerSeat = p:GetNWEntity("PassengerSeat",NULL);
+
 		if(IsValid(self)) then
 
 			if(IsValid(DriverSeat)) then
 				if(DriverSeat:GetThirdPersonMode()) then
-					local pos = self:GetPos()+self:GetForward()*270+self:GetUp()*100;
-					//local face = self:GetAngles() + Angle(0,180,0);
+					local pos = self:GetPos()+LocalPlayer():GetAimVector():GetNormal()*-300+self:GetUp()*120;
+					//local pos = self:GetPos()+self:GetRight()*250+self:GetUp()*100;
+					//local face = self:GetAngles() + Angle(0,-90,0);
+					local face = ((self:GetPos() + Vector(0,0,100))- pos):Angle();
+						View.origin = pos;
+						View.angles = face;
+					return View;
+				end
+			end
+			
+			if(IsValid(PassengerSeat)) then
+				if(PassengerSeat:GetThirdPersonMode()) then
+					local pos = self:GetPos()+LocalPlayer():GetAimVector():GetNormal()*-300+self:GetUp()*120;
+					//local pos = self:GetPos()+self:GetRight()*250+self:GetUp()*100;
+					//local face = self:GetAngles() + Angle(0,-90,0);
 					local face = ((self:GetPos() + Vector(0,0,100))- pos):Angle();
 						View.origin = pos;
 						View.angles = face;
@@ -142,11 +169,11 @@ if CLIENT then
 			end
 		end
 	end
-	hook.Add("CalcView", "GhostView", CalcView)
+	hook.Add("CalcView", "HaloRevenantView", CalcView)
 
 	
-	hook.Add( "ShouldDrawLocalPlayer", "GhostDrawPlayerModel", function( p )
-		local self = p:GetNWEntity("Ghost", NULL);
+	hook.Add( "ShouldDrawLocalPlayer", "HaloRevenantDrawPlayerModel", function( p )
+		local self = p:GetNWEntity("HaloRevenant", NULL);
 		local DriverSeat = p:GetNWEntity("DriverSeat",NULL);
 		local PassengerSeat = p:GetNWEntity("PassengerSeat",NULL);
 		if(IsValid(self)) then
@@ -162,60 +189,19 @@ if CLIENT then
 		end
 	end);
 	
-	function ENT:Effects()
-	
-
-		local p = LocalPlayer();
-		local roll = math.Rand(-45,45);
-		local normal = (self.Entity:GetRight() * -1):GetNormalized();
-		local FWD = self:GetRight();
-		local id = self:EntIndex();
-		for k,v in pairs(self.GhostEnginePos) do
-			
-			local blue = self.FXEmitter:Add("sprites/bluecore",v+FWD*25)
-			blue:SetVelocity(normal)
-			blue:SetDieTime(0.06)
-			blue:SetStartAlpha(155)
-			blue:SetEndAlpha(8)
-			blue:SetStartSize(2)
-			blue:SetEndSize(5)
-			blue:SetRoll(roll)
-			blue:SetColor(255,255,255)
-
-		end
-	end
-	
-	function ENT:Think()
-	
-		
-		
-		local p = LocalPlayer();
-		local Flying = self:GetNWBool("Flying".. self.Vehicle);
-		if(Flying) then
-			self.GhostEnginePos = {
-				self:GetPos()+self:GetRight()*-62+self:GetUp()*20+self:GetForward()*-30,
-				self:GetPos()+self:GetRight()*12+self:GetUp()*20+self:GetForward()*-30,
-			}
-			self:Effects();
-		end
-		self.BaseClass.Think(self)
-	end
-	
-	function GhostReticle()
+	function HaloRevenantReticle()
 	
 		local p = LocalPlayer();
-		local Flying = p:GetNWBool("FlyingGhost");
-		local self = p:GetNWEntity("Ghost");
+		local Flying = p:GetNWBool("FlyingHaloRevenant");
+		local self = p:GetNWEntity("HaloRevenant");
 		if(Flying and IsValid(self)) then
-			local WeaponsPos = {self:GetPos()};
-			
-			HALO_CovenantHoverReticles(self,WeaponsPos)
-			HALO_Speeder_DrawHull(800)
+				
+			HALO_Speeder_DrawHull(1500)
 			HALO_Speeder_DrawSpeedometer()
-
+	
 		end
 	end
-	hook.Add("HUDPaint", "GhostReticle", GhostReticle)
+	hook.Add("HUDPaint", "HaloRevenantReticle", HaloRevenantReticle)
 	
 	
 end

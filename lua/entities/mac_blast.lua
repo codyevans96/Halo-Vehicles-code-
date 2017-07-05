@@ -24,7 +24,7 @@ if SERVER then
 		
 		self:SetNWBool("White",self.IsWhite);
 		self:SetNWInt("StartSize",self.StartSize or 85);
-		self:SetNWInt("EndSize",self.EndSize or 70);
+		self:SetNWInt("EndSize",self.EndSize or 10);
 		
 		self.Damage = self.Damage or 2500;
 
@@ -38,7 +38,7 @@ if SERVER then
 		if(!ang) then
 			ang = e:GetForward();
 		end
-		phys:SetVelocity(ang*(60000*vel))
+		phys:SetVelocity(ang*60000)
 	end
 	
 	function ENT:PhysicsCollide(data, physobj)
@@ -86,8 +86,8 @@ if CLIENT then
 		local blue = self.FXEmitter:Add(sprite,self:GetPos())
 		blue:SetVelocity(normal)
 		blue:SetDieTime(0.2)
-		blue:SetStartAlpha(255)
-		blue:SetEndAlpha(255)
+		blue:SetStartAlpha(155)
+		blue:SetEndAlpha(0)
 		blue:SetStartSize(StartSize)
 		blue:SetEndSize(EndSize)
 		blue:SetRoll(roll)

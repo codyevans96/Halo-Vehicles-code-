@@ -500,7 +500,7 @@ end
 
 function ENT:FireBlast(pos,gravity,vel,ang)
 	if(self.NextUse.FireBlast < CurTime()) then
-		local e = ents.Create("cannon_blast");
+		local e = ents.Create("plasma_blast");
 		e:SetPos(pos);
 		e:Spawn();
 		e:Activate();
@@ -511,7 +511,6 @@ function ENT:FireBlast(pos,gravity,vel,ang)
 	end
 	
 end
-
 
 function ENT:RunTraces()
 	self.FrontTrace = util.TraceLine({

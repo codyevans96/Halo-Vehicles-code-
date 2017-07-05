@@ -54,7 +54,7 @@ function ENT:Initialize()
 	self.Cooldown = 2;
 	self.HasWings = false;
 	self.CanShoot = false;
-	self.Bullet = HALOCreateBulletStructure(150,"plasma");
+	self.Bullet = HALOCreateBulletStructure(150,"plasma",true);
 	self.FireDelay = 0.2;
 	self.NextBlast = 1;
 	self.WarpDestination = Vector(0,0,0);

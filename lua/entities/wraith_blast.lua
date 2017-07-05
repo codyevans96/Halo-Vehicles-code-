@@ -20,10 +20,10 @@ if SERVER then
 		self:StartMotionController();
 		self:SetUseType(SIMPLE_USE);
 		self:SetRenderMode(RENDERMODE_TRANSALPHA);
-		self:SetColor(Color(218,150,214,1));
+		self:SetColor(Color(218,210,214,1));
 		
 		self:SetNWBool("White",self.IsWhite);
-		self:SetNWInt("StartSize",self.StartSize or 35);
+		self:SetNWInt("StartSize",self.StartSize or 40);
 		self:SetNWInt("EndSize",self.EndSize or 10);
 		
 		self.Damage = self.Damage or 500;
@@ -86,7 +86,7 @@ if CLIENT then
 		local blue = self.FXEmitter:Add(sprite,self:GetPos())
 		blue:SetVelocity(normal)
 		blue:SetDieTime(0.5)
-		blue:SetStartAlpha(25)
+		blue:SetStartAlpha(75)
 		blue:SetEndAlpha(1)
 		blue:SetStartSize(StartSize)
 		blue:SetEndSize(EndSize)
