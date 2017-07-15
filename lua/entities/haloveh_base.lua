@@ -1409,7 +1409,7 @@ if CLIENT then
 		end
 		FPV = false;
 		if(IsValid(self.FXEmitter)) then
-			self.FXEmitter:Remove();
+			self.FXEmitter:Finish();
 		end
 	end
 	
