@@ -2,16 +2,16 @@ ENT.RenderGroup = RENDERGROUP_BOTH
 ENT.Base = "halohover_base"
 ENT.Type = "vehicle"
  
-ENT.PrintName = "Mark 2488 MAC"
+ENT.PrintName = "T-38 Tyrant"
 ENT.Author = "Cody Evans"
 --- BASE AUTHOR: Liam0102 ---
-ENT.Category = "Halo Vehicles: UNSC"
+ENT.Category = "Halo Vehicles: Covenant"
 ENT.AutomaticFrameAdvance = true
 ENT.Spawnable = false;
 ENT.AdminOnly = false;
  
-ENT.Vehicle = "macgun";
-ENT.EntModel = "models/helios/mac/mac.mdl";
+ENT.Vehicle = "halov_tyrant";
+ENT.EntModel = "models/helios/tyrant/tyrant.mdl";
  
 ENT.StartHealth = 6000;
  
@@ -25,7 +25,7 @@ ENT.FireSound = Sound("weapons/banshee_shoot.wav");
  
 AddCSLuaFile();
 function ENT:SpawnFunction(pl, tr)
-    local e = ents.Create("macgun");
+    local e = ents.Create("halov_tyrant");
     e:SetPos(tr.HitPos + Vector(0,0,10));
     e:SetAngles(Angle(0,pl:GetAimVector():Angle().Yaw+0,0));
     e:Spawn();
@@ -35,7 +35,7 @@ end
  
 function ENT:Initialize()
     self.BaseClass.Initialize(self);
-    local driverPos = self:GetPos()+self:GetUp()*198+self:GetForward()*10+self:GetRight()*-166.5;
+    local driverPos = self:GetPos()+self:GetUp()*705+self:GetForward()*-10+self:GetRight()*0;
     local driverAng = self:GetAngles()+Angle(0,-90,0);
     self:SpawnChairs(driverPos,driverAng,false)
    
@@ -47,24 +47,24 @@ function ENT:Initialize()
     }
     self:SpawnWeapons();
     self.HoverMod = 0.5;
-    self.StartHover = 5;
-    self.StandbyHoverAmount = 5; 
+    self.StartHover = 1;
+    self.StandbyHoverAmount = 1; 
     self.SpeederClass = 2;
     self.CanBack = true;
     self.CannonLocation = self:GetPos()+self:GetUp()*500+self:GetForward()*-300;
     self:SpawnCannon(self:GetAngles()+Angle(0,0,0));
  
-    self.ExitModifier = {x=0,y=-250,z=5}
+    self.ExitModifier = {x=0,y=-400,z=5}
    
 end
  
 function ENT:FireBlast(pos,gravity,vel,ang)
     if(self.NextUse.FireBlast < CurTime()) then
-        local e = ents.Create("mac_blast");
+        local e = ents.Create("tyrant_blast");
         e:SetPos(pos);
         e:Spawn();
         e:Activate();
-        e:Prepare(self,Sound("weapons/hevplasma_shoot.wav"),gravity,vel,ang);
+        e:Prepare(self,Sound("weapons/macgun.wav"),gravity,vel,ang);
         e:SetColor(Color(255,255,255,1));
        
         self.NextUse.FireBlast = CurTime() + 5;
@@ -77,25 +77,25 @@ function ENT:Enter(p,driver)
     self:Rotorwash(false);
 end
  
-hook.Add("PlayerEnteredVehicle","MacgunSeatEnter", function(p,v)
+hook.Add("PlayerEnteredVehicle","HALOV_TyrantSeatEnter", function(p,v)
     if(IsValid(v) and IsValid(p)) then
-        if(v.IsMacgunSeat) then
-            p:SetNetworkedEntity("Macgun",v:GetParent());
-            p:SetNetworkedEntity("MacgunSeat",v);
+        if(v.IsHALOV_TyrantSeat) then
+            p:SetNetworkedEntity("HALOV_Tyrant",v:GetParent());
+            p:SetNetworkedEntity("HALOV_TyrantSeat",v);
             p:SetAllowWeaponsInVehicle( false )
         end
     end
 end);
  
-hook.Add("PlayerLeaveVehicle", "MacgunSeatExit", function(p,v)
+hook.Add("PlayerLeaveVehicle", "HALOV_TyrantSeatExit", function(p,v)
     if(IsValid(p) and IsValid(v)) then
-        if(v.IsMacgunSeat) then
-            local e = v.Macgun;
+        if(v.IsHALOV_TyrantSeat) then
+            local e = v.HALOV_Tyrant;
             if(IsValid(e)) then
                 p:SetEyeAngles(e:GetAngles()+Angle(0,0,0))
             end
-            p:SetNetworkedEntity("MacgunSeat",NULL);
-            p:SetNetworkedEntity("Macgun",NULL);
+            p:SetNetworkedEntity("HALOV_TyrantSeat",NULL);
+            p:SetNetworkedEntity("HALOV_Tyrant",NULL);
         end
     end
 end);
@@ -127,9 +127,9 @@ end
 function ENT:SpawnCannon(ang)
    
     local e = ents.Create("prop_physics");
-    e:SetPos(self:GetPos()+self:GetUp()*240+self:GetForward()*60+self:GetRight()*0);
+    e:SetPos(self:GetPos()+self:GetUp()*460+self:GetForward()*0+self:GetRight()*0);
     e:SetAngles(ang);
-    e:SetModel("models/helios/mac/mac_cannon.mdl");
+    e:SetModel("models/helios/tyrant/tyrant_cannon.mdl");
     e:SetParent(self);
     e:Spawn();
     e:Activate();
@@ -157,7 +157,7 @@ function ENT:Think()
             end
             self.Cannon:SetAngles(Angle(p,self:GetAngles().y,self:GetAngles().r));
             if(self.Pilot:KeyDown(IN_ATTACK)) then
-                self:FireBlast(self.Cannon:GetPos()+self.Cannon:GetForward()*50+self:GetUp()*0,true,100,self.Cannon:GetAngles():Forward());
+                self:FireBlast(self.Cannon:GetPos()+self.Cannon:GetForward()*20+self:GetUp()*60,true,100,self.Cannon:GetAngles():Forward());
             end
         end
        
@@ -232,17 +232,16 @@ if CLIENT then
     local function CalcView()
        
         local p = LocalPlayer();
-        local self = p:GetNWEntity("Macgun", NULL)
+        local self = p:GetNWEntity("HALOV_Tyrant", NULL)
         local DriverSeat = p:GetNWEntity("DriverSeat",NULL);
-        local MacgunSeat = p:GetNWEntity("MacgunSeat",NULL);
-        local pass = p:GetNWEntity("MacgunSeat",NULL);
+        local HALOV_TyrantSeat = p:GetNWEntity("HALOV_TyrantSeat",NULL);
+        local pass = p:GetNWEntity("HALOV_TyrantSeat",NULL);
         if(IsValid(self)) then
  
             if(IsValid(DriverSeat)) then
                 if(DriverSeat:GetThirdPersonMode()) then
-                    --- local pos = self:GetPos()+self:GetForward()*-800+self:GetUp()*300;
-					local pos = Cannon:GetPos()+Cannon:GetForward()*-400+Cannon:GetUp()*100;
-                    local face = Cannon:GetAngles() + Angle(0,0,0);
+                    local pos = self:GetPos()+self:GetForward()*-1000+self:GetUp()*900+self:GetRight()*500;
+                    local face = self:GetAngles() + Angle(0,0,0);
                         View.origin = pos;
                         View.angles = face;
                     return View;
@@ -251,7 +250,7 @@ if CLIENT then
        
  
             if(IsValid(pass)) then
-                if(MacgunSeat:GetThirdPersonMode()) then
+                if(HALOV_TyrantSeat:GetThirdPersonMode()) then
                         View =  HALOVehicleView(self,1000,600,fpvPos);
                     return View;
                     else
@@ -261,13 +260,13 @@ if CLIENT then
             end
         end
     end
-    hook.Add("CalcView", "MacgunView", CalcView)
+    hook.Add("CalcView", "HALOV_TyrantView", CalcView)
    
-    hook.Add( "ShouldDrawLocalPlayer", "MacgunDrawPlayerModel", function( p )
-        local self = p:GetNWEntity("Macgun", NULL);
+    hook.Add( "ShouldDrawLocalPlayer", "HALOV_TyrantDrawPlayerModel", function( p )
+        local self = p:GetNWEntity("HALOV_Tyrant", NULL);
         local DriverSeat = p:GetNWEntity("DriverSeat",NULL);
-        local MacgunSeat = p:GetNWEntity("MacgunSeat",NULL);
-        local pass = p:GetNWEntity("MacgunSeat",NULL);
+        local HALOV_TyrantSeat = p:GetNWEntity("HALOV_TyrantSeat",NULL);
+        local pass = p:GetNWEntity("HALOV_TyrantSeat",NULL);
         if(IsValid(self)) then
             if(IsValid(DriverSeat)) then
                 if(DriverSeat:GetThirdPersonMode()) then
@@ -275,18 +274,18 @@ if CLIENT then
                 end
             end
             if(IsValid(pass)) then
-                if(MacgunSeat:GetThirdPersonMode()) then
+                if(HALOV_TyrantSeat:GetThirdPersonMode()) then
                     return false;
                 end
             end
         end
     end);
    
-    function MacgunReticle()
+    function HALOV_TyrantReticle()
    
         local p = LocalPlayer();
-        local Flying = p:GetNWBool("FlyingMacgun");
-        local self = p:GetNWEntity("Macgun");
+        local Flying = p:GetNWBool("FlyingHALOV_Tyrant");
+        local self = p:GetNWEntity("HALOV_Tyrant");
         if(Flying and IsValid(self)) then      
 surface.SetDrawColor( color_white )	
 			local CannonPos = Cannon:GetPos()+Cannon:GetForward()*-140;
@@ -313,12 +312,12 @@ surface.SetDrawColor( color_white )
 			y = y - h/2;
 			surface.SetMaterial( Material( "hud/reticle_heavy.png", "noclamp" ) )
 			surface.DrawTexturedRectUV( x , y, w, h, 0, 0, 1, 1 )
-           
+			
             HALO_Speeder_DrawHull(6000)
  
         end
     end
-    hook.Add("HUDPaint", "MacgunReticle", MacgunReticle)
+    hook.Add("HUDPaint", "HALOV_TyrantReticle", HALOV_TyrantReticle)
    
    
 end

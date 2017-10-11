@@ -1832,7 +1832,7 @@ if CLIENT then
 	
 	function HALO_LightOrDark(allegiance)
 	
-		if(allegiance == "Covenant") then
+		if(allegiance == "Covenant" or allegiance == "Forerunner") then
 			return "Dark";
 		elseif(allegiance == "UNSC") then
 			return "Light";

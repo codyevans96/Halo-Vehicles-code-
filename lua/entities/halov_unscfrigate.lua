@@ -2,31 +2,31 @@ ENT.RenderGroup = RENDERGROUP_OPAQUE
 ENT.Base = "haloveh_base"
 ENT.Type = "vehicle"
 
-ENT.PrintName = "SDV-Class Corvette"
+ENT.PrintName = "Paris-Class Frigate"
 ENT.Author = "Cody Evans"
 --- BASE AUTHOR: Liam0102 ---
-ENT.Category = "Halo Vehicles: Covenant"
+ENT.Category = "Halo Vehicles: UNSC"
 ENT.AutomaticFrameAdvance = true
 ENT.Spawnable = false;
 ENT.AdminSpawnable = false;
 ENT.AdminOnly = true;
 
-ENT.EntModel = "models/helios/capital/covenant_corvette.mdl"
-ENT.Vehicle = "covcorvette"
-ENT.StartHealth = 20000;
+ENT.EntModel = "models/helios/capital/unsc_frigate.mdl"
+ENT.Vehicle = "halov_unscfrigate"
+ENT.StartHealth = 16000;
 ENT.IsCapitalShip = true;
 
 list.Set("HaloVehicles", ENT.PrintName, ENT);
 
 if SERVER then
 
-ENT.FireSound = Sound("weapons/plasma_shoot.wav");
+ENT.FireSound = Sound("weapons/heavybolt.wav");
 ENT.NextUse = {Wings = CurTime(),Use = CurTime(),Fire = CurTime(),SlipJump=CurTime(),Switch=CurTime(),};
 
 AddCSLuaFile();
 function ENT:SpawnFunction(pl, tr)
-	local e = ents.Create("cov_corvette");
-	e:SetPos(tr.HitPos + Vector(0,0,1300));
+	local e = ents.Create("halov_unscfrigate");
+	e:SetPos(tr.HitPos + Vector(0,0,900));
 	e:SetAngles(Angle(0,pl:GetAimVector():Angle().Yaw+180,0));
 	e:Spawn();
 	e:Activate();
@@ -43,8 +43,8 @@ function ENT:Initialize()
 		Right = self:GetPos()+self:GetForward()*100+self:GetUp()*70+self:GetRight()*70,
 	}
 	self.WeaponsTable = {};
-	self.BoostSpeed = 350;
-	self.ForwardSpeed = 350;
+	self.BoostSpeed = 400;
+	self.ForwardSpeed = 400;
 	self.UpSpeed = 300;
 	self.AccelSpeed = 8;
 	self.CanStandby = true;
@@ -54,8 +54,8 @@ function ENT:Initialize()
 	self.Cooldown = 2;
 	self.HasWings = false;
 	self.CanShoot = false;
-	self.Bullet = HALOCreateBulletStructure(150,"plasma",true);
-	self.FireDelay = 0.2;
+	self.Bullet = HALOCreateBulletStructure(75,"unsc",true);
+	self.FireDelay = 0.15;
 	self.NextBlast = 1;
 	self.WarpDestination = Vector(0,0,0);
 	if(WireLib) then
@@ -69,27 +69,34 @@ function ENT:Initialize()
 	self.OGUp = 100;
 
 	self.ExitModifier = {x=1000,y=225,z=100};
+	
 	self.SeatPos = {
-		{self:GetPos()+self:GetUp()*0+self:GetForward()*-1900+self:GetRight()*300, self:GetAngles()+Angle(0,180,0)},
-		{self:GetPos()+self:GetUp()*0+self:GetForward()*-1900+self:GetRight()*-300, self:GetAngles()},
+		{self:GetPos()+self:GetUp()*50+self:GetForward()*-300+self:GetRight()*300, self:GetAngles()+Angle(0,180,0)},
+		{self:GetPos()+self:GetUp()*50+self:GetForward()*-300+self:GetRight()*-300, self:GetAngles()},
 	}
 	self.GunnerSeats = {};
 	self:SpawnGunnerSeats();
 
 	self.LeftWeaponLocations = {
-		self:GetPos()+self:GetUp()*-175+self:GetForward()*-1850+self:GetRight()*600,
+		self:GetPos()+self:GetUp()*125+self:GetForward()*-100+self:GetRight()*600,
+		self:GetPos()+self:GetUp()*125+self:GetForward()*-130+self:GetRight()*600,
 		
-		self:GetPos()+self:GetUp()*-175+self:GetForward()*-1950+self:GetRight()*600,
+		self:GetPos()+self:GetUp()*125+self:GetForward()*-300+self:GetRight()*600,
+		self:GetPos()+self:GetUp()*125+self:GetForward()*-330+self:GetRight()*600,
 
-		self:GetPos()+self:GetUp()*-175+self:GetForward()*-2050+self:GetRight()*600,	
+		self:GetPos()+self:GetUp()*125+self:GetForward()*-500+self:GetRight()*600,
+		self:GetPos()+self:GetUp()*125+self:GetForward()*-530+self:GetRight()*600,		
 	}
 	
 	self.RightWeaponLocations = {
-		self:GetPos()+self:GetUp()*-175+self:GetForward()*-1850+self:GetRight()*-600,
+		self:GetPos()+self:GetUp()*125+self:GetForward()*-100+self:GetRight()*-600,
+		self:GetPos()+self:GetUp()*125+self:GetForward()*-130+self:GetRight()*-600,
 		
-		self:GetPos()+self:GetUp()*-175+self:GetForward()*-1950+self:GetRight()*-600,
+		self:GetPos()+self:GetUp()*125+self:GetForward()*-300+self:GetRight()*-600,
+		self:GetPos()+self:GetUp()*125+self:GetForward()*-330+self:GetRight()*-600,
 
-		self:GetPos()+self:GetUp()*-175+self:GetForward()*-2050+self:GetRight()*-600,	
+		self:GetPos()+self:GetUp()*125+self:GetForward()*-500+self:GetRight()*-600,
+		self:GetPos()+self:GetUp()*125+self:GetForward()*-530+self:GetRight()*-600,		
 	}
 
 	self.BaseClass.Initialize(self);
@@ -149,45 +156,29 @@ function ENT:Think()
 				self:SlipTrigger(self.WarpDestination);
 			end
 		end
-	end
-	
-	if(self.Inflight) then
-        if(IsValid(self.Pilot)) then
+		
+		if(IsValid(self.Pilot)) then
             if(IsValid(self.Pilot)) then 
                 if(self.Pilot:KeyDown(IN_ATTACK) and self.NextUse.FireBlast < CurTime()) then
                     self.BlastPositions = {
-                        self:GetPos() + self:GetForward() * -240 + self:GetRight() * 635 + self:GetUp() * -200,
-						self:GetPos() + self:GetForward() * -240 + self:GetRight() * -635 + self:GetUp() * -200,
-						self:GetPos() + self:GetForward() * -240 + self:GetRight() * 735 + self:GetUp() * -200,
-						self:GetPos() + self:GetForward() * -240 + self:GetRight() * -735 + self:GetUp() * -200,
-						self:GetPos() + self:GetForward() * -240 + self:GetRight() * 935 + self:GetUp() * -200,
-						self:GetPos() + self:GetForward() * -240 + self:GetRight() * -935 + self:GetUp() * -200,
+                        self:GetPos() + self:GetForward() * -1525 + self:GetUp() * 160,
                     }
-                    self:FireCOVCorvetteBlast(self.BlastPositions[self.NextBlast], false, 1200, 1200, true, 8, Sound("weapons/wraith_shoot.wav"));
+                    self:FireHALOV_UNSCFrigateBlast(self.BlastPositions[self.NextBlast], false, 1500, 1500, true, 8, Sound("weapons/macgun.wav"));
 					self.NextBlast = self.NextBlast + 1;
-					if(self.NextBlast == 7) then
-						self.NextUse.FireBlast = CurTime()+10;
-						self:SetNWBool("OutOfMissiles",true);
+					if(self.NextBlast == 2) then
+						self.NextUse.FireBlast = CurTime()+5;
 						self:SetNWInt("FireBlast",self.NextUse.FireBlast)
 						self.NextBlast = 1;
 					end
-					
-					
                 end
 			end
 		end
-		
-		if(self.NextUse.FireBlast < CurTime()) then
-			self:SetNWBool("OutOfMissiles",false);
-		end
-        self:SetNWInt("Overheat",self.Overheat);
-        self:SetNWBool("Overheated",self.Overheated);
-    end
+	end
 	
 	self.BaseClass.Think(self);
 end
 
-hook.Add("PlayerLeaveVehicle", "COVCorvetteSeatExit", function(p,v)
+hook.Add("PlayerLeaveVehicle", "HALOV_UNSCFrigateSeatExit", function(p,v)
 	if(IsValid(p) and IsValid(v)) then
 		if(v.IsRepGunnerSeat) then
 			local e = v:GetParent();
@@ -348,21 +339,24 @@ function ENT:GunnerExit(right,p)
 	p:SetNWEntity(self.Vehicle,NULL);
 end
 
-function ENT:FireCOVCorvetteBlast(pos,gravity,vel,dmg,white,size,snd)
-	local e = ents.Create("covcapital_blast");
-	
-	e.Damage = dmg or 600;
-	e.IsWhite = white or false;
-	e.StartSize = size or 80;
-	e.EndSize = size*5 or 75;
-	
-	local sound = snd or Sound("weapons/wraith_shoot.wav");
-	
-	e:SetPos(pos);
-	e:Spawn();
-	e:Activate();
-	e:Prepare(self,sound,gravity,vel);
-	e:SetColor(Color(255,255,255,1));
+function ENT:FireHALOV_UNSCFrigateBlast(pos,gravity,vel,dmg,white,size,snd)
+	if(self.NextUse.FireBlast < CurTime()) then
+		local e = ents.Create("capital_blast");
+		
+		e.Damage = dmg or 600;
+		e.IsWhite = white or false;
+		e.StartSize = size or 80;
+		e.EndSize = e.StartSize*7 or 45;
+		
+		
+		local sound = snd or Sound("weapons/macgun.wav");
+		
+		e:SetPos(pos);
+		e:Spawn();
+		e:Activate();
+		e:Prepare(self,sound,gravity,vel);
+		e:SetColor(Color(255,160,0,1));
+	end
 	
 end
 
@@ -453,9 +447,9 @@ function ENT:PhysicsSimulate(phys,delta)
 		self.Accel.FWD = math.Approach(self.Accel.FWD,self.num,self.Acceleration);
 		
 		if(self.Pilot:KeyDown(IN_MOVERIGHT)) then
-			self.TurnYaw = Angle(0,-8,0);
+			self.TurnYaw = Angle(0,-10,0);
 		elseif(self.Pilot:KeyDown(IN_MOVELEFT)) then
-			self.TurnYaw = Angle(0,8,0);
+			self.TurnYaw = Angle(0,10,0);
 		else
 			self.TurnYaw = Angle(0,0,0);
 		end
@@ -512,7 +506,7 @@ if CLIENT then
 	
 	ENT.CanFPV = false;
 	ENT.Sounds={
-		Engine=Sound("vehicles/covenant_fly2.wav"),
+		Engine=Sound("ambient/atmosphere/ambience_base.wav"),
 	}
 	
 	function ENT:Initialize()
@@ -531,18 +525,19 @@ if CLIENT then
 		end
 		
 		if(Flying) then
-			self.COVCorvettePos = {
-				self:GetPos()+self:GetForward()*1670+self:GetUp()*-120+self:GetRight()*100,
-				self:GetPos()+self:GetForward()*1670+self:GetUp()*-120+self:GetRight()*-100,
-				
-				self:GetPos()+self:GetForward()*1840+self:GetUp()*-20+self:GetRight()*280,
-				self:GetPos()+self:GetForward()*1780+self:GetUp()*-20+self:GetRight()*340,
-				self:GetPos()+self:GetForward()*1720+self:GetUp()*-20+self:GetRight()*400,
-				
-				self:GetPos()+self:GetForward()*1840+self:GetUp()*-20+self:GetRight()*-280,
-				self:GetPos()+self:GetForward()*1780+self:GetUp()*-20+self:GetRight()*-340,
-				self:GetPos()+self:GetForward()*1720+self:GetUp()*-20+self:GetRight()*-400,
-				
+			self.MainHALOV_UNSCFrigatePos = {
+				self:GetPos()+self:GetForward()*1785+self:GetUp()*-22+self:GetRight()*375,
+				self:GetPos()+self:GetForward()*1785+self:GetUp()*-22+self:GetRight()*-375,
+			}
+			self.MiniHALOV_UNSCFrigatePos = {
+				self:GetPos()+self:GetForward()*1755+self:GetUp()*-3+self:GetRight()*525,
+				self:GetPos()+self:GetForward()*1755+self:GetUp()*-3+self:GetRight()*-525,
+				self:GetPos()+self:GetForward()*1755+self:GetUp()*-42+self:GetRight()*555,
+				self:GetPos()+self:GetForward()*1755+self:GetUp()*-42+self:GetRight()*-555,
+			}
+			self.BigHALOV_UNSCFrigatePos = {
+				self:GetPos()+self:GetForward()*1830+self:GetUp()*87+self:GetRight()*458,
+				self:GetPos()+self:GetForward()*1830+self:GetUp()*87+self:GetRight()*-458,
 			}
 			self:Effects();
 		end
@@ -553,8 +548,8 @@ if CLIENT then
 	function CalcView()
 		
 		local p = LocalPlayer();
-		local self = p:GetNWEntity("COVCorvette")
-		local Flying = p:GetNWBool("FlyingCOVCorvette");
+		local self = p:GetNWEntity("HALOV_UNSCFrigate")
+		local Flying = p:GetNWBool("FlyingHALOV_UNSCFrigate");
 		local pos,face;
 		if(IsValid(self) and Flying) then
 			
@@ -567,7 +562,7 @@ if CLIENT then
 			else
 				pos = self:GetPos()+self:GetUp()*350+LocalPlayer():GetAimVector():GetNormal()*5000;			
 				face = ((self:GetPos() + Vector(0,0,100))- pos):Angle()
-				View =  HALOVehicleView(self,-5000,250,fpvPos);
+				View =  HALOVehicleView(self,-3000,250,fpvPos);
 			end
 			
 			lastpos = pos;
@@ -576,7 +571,7 @@ if CLIENT then
 			return View;
 		end
 	end
-	hook.Add("CalcView", "COVCorvetteView", CalcView)
+	hook.Add("CalcView", "HALOV_UNSCFrigateView", CalcView)
 	
 	function ENT:Effects()
 
@@ -584,26 +579,53 @@ if CLIENT then
 		local roll = math.Rand(-45,45);
 		local normal = (self.Entity:GetForward() * 1):GetNormalized();
 		local id = self:EntIndex();
-		for k,v in pairs(self.COVCorvettePos) do
+		for k,v in pairs(self.MainHALOV_UNSCFrigatePos) do
 			
-			local blue = self.Emitter:Add("sprites/bluecore",v)
+			local blue = self.Emitter:Add("sprites/orangecore1",v)
 			blue:SetVelocity(normal)
-			blue:SetDieTime(0.8)
-			blue:SetStartAlpha(35)
-			blue:SetEndAlpha(5)
-			blue:SetStartSize(90)
+			blue:SetDieTime(0.3)
+			blue:SetStartAlpha(25)
+			blue:SetEndAlpha(0)
+			blue:SetStartSize(40)
 			blue:SetEndSize(1)
 			blue:SetRoll(roll)
-			blue:SetColor(218,90,214)
+			blue:SetColor(255,255,255)
+
+		end
+		for k,v in pairs(self.BigHALOV_UNSCFrigatePos) do
+			
+			local blue = self.Emitter:Add("sprites/orangecore1",v)
+			blue:SetVelocity(normal)
+			blue:SetDieTime(0.5)
+			blue:SetStartAlpha(10)
+			blue:SetEndAlpha(0)
+			blue:SetStartSize(90)
+			blue:SetEndSize(10)
+			blue:SetRoll(roll)
+			blue:SetColor(255,255,255)
+
+		end
+		for k,v in pairs(self.MiniHALOV_UNSCFrigatePos) do
+			
+			local blue = self.Emitter:Add("sprites/orangecore1",v)
+			blue:SetVelocity(normal)
+			blue:SetDieTime(0.15)
+			blue:SetStartAlpha(25)
+			blue:SetEndAlpha(0)
+			blue:SetStartSize(20)
+			blue:SetEndSize(1)
+			blue:SetRoll(roll)
+			blue:SetColor(255,255,255)
 
 		end
 	end
+
 	
-	function COVCorvetteReticle()
+	function HALOV_UNSCFrigateReticle()
 		
 		local p = LocalPlayer();
-		local Flying = p:GetNWBool("FlyingCOVCorvette");
-		local self = p:GetNWEntity("COVCorvette");
+		local Flying = p:GetNWBool("FlyingHALOV_UNSCFrigate");
+		local self = p:GetNWEntity("HALOV_UNSCFrigate");
 		local LeftGunner = p:GetNWBool("LeftGunner");
 		local RightGunner = p:GetNWBool("RightGunner");
 		
@@ -615,19 +637,22 @@ if CLIENT then
 		
 		if(Flying and IsValid(self)) then
 
-			HALO_HUD_DrawHull(20000,x,y);			
+			HALO_HUD_DrawHull(16000,x,y);			
 		
 		elseif(LeftGunner and IsValid(self)) then
 
 			local WeaponsPos = {
-				self:GetPos()+self:GetUp()*-175+self:GetForward()*-1850+self:GetRight()*600,
+				self:GetPos()+self:GetUp()*125+self:GetForward()*-130+self:GetRight()*600,
+				self:GetPos()+self:GetUp()*125+self:GetForward()*-130+self:GetRight()*600,
 				
-				self:GetPos()+self:GetUp()*-175+self:GetForward()*-1950+self:GetRight()*600,
+				self:GetPos()+self:GetUp()*125+self:GetForward()*-330+self:GetRight()*600,
+				self:GetPos()+self:GetUp()*125+self:GetForward()*-330+self:GetRight()*600,
 
-				self:GetPos()+self:GetUp()*-175+self:GetForward()*-2050+self:GetRight()*600,	
+				self:GetPos()+self:GetUp()*125+self:GetForward()*-530+self:GetRight()*600,
+				self:GetPos()+self:GetUp()*125+self:GetForward()*-530+self:GetRight()*600,		
 			}
 			
-			for i=1,3 do
+			for i=1,6 do
 				local tr = util.TraceLine( {
 					start = WeaponsPos[i],
 					endpos = WeaponsPos[i] + p:GetAimVector():Angle():Forward()*10000,
@@ -657,14 +682,17 @@ if CLIENT then
 			end
 		elseif(RightGunner and IsValid(self)) then
 			local WeaponsPos = {
-				self:GetPos()+self:GetUp()*-175+self:GetForward()*-1850+self:GetRight()*-600,
+				self:GetPos()+self:GetUp()*125+self:GetForward()*-130+self:GetRight()*-600,
+				self:GetPos()+self:GetUp()*125+self:GetForward()*-130+self:GetRight()*-600,
 				
-				self:GetPos()+self:GetUp()*-175+self:GetForward()*-1950+self:GetRight()*-600,
+				self:GetPos()+self:GetUp()*125+self:GetForward()*-330+self:GetRight()*-600,
+				self:GetPos()+self:GetUp()*125+self:GetForward()*-330+self:GetRight()*-600,
 
-				self:GetPos()+self:GetUp()*-175+self:GetForward()*-2050+self:GetRight()*-600,			
+				self:GetPos()+self:GetUp()*125+self:GetForward()*-530+self:GetRight()*-600,
+				self:GetPos()+self:GetUp()*125+self:GetForward()*-530+self:GetRight()*-600,			
 			}
 			
-			for i=1,3 do
+			for i=1,6 do
 				local tr = util.TraceLine( {
 					start = WeaponsPos[i],
 					endpos = WeaponsPos[i] + p:GetAimVector():Angle():Forward()*10000,
@@ -694,6 +722,6 @@ if CLIENT then
 			end
 		end
 	end
-	hook.Add("HUDPaint", "COVCorvetteReticle", COVCorvetteReticle)
+	hook.Add("HUDPaint", "HALOV_UNSCFrigateReticle", HALOV_UNSCFrigateReticle)
 
 end

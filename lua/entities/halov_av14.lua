@@ -12,7 +12,7 @@ ENT.AdminSpawnable = false;
 
 ENT.EntModel = "models/helios/hornet/hornet.mdl"
 ENT.FlyModel = "models/helios/hornet/hornet_fwd.mdl"
-ENT.Vehicle = "hornet"
+ENT.Vehicle = "halov_av14"
 ENT.StartHealth = 1000;
 ENT.Allegiance = "UNSC";
 
@@ -25,7 +25,7 @@ ENT.NextUse = {Wings = CurTime(),Use = CurTime(),Fire = CurTime(),};
 
 AddCSLuaFile();
 function ENT:SpawnFunction(pl, tr)
-	local e = ents.Create("hornet");
+	local e = ents.Create("halov_av14");
 	e:SetPos(tr.HitPos + Vector(0,0,5));
 	e:SetAngles(Angle(0,pl:GetAimVector():Angle().Yaw,0));
 	e:Spawn();
@@ -104,35 +104,35 @@ function ENT:SpawnSeats()
 		e:SetUseType(USE_OFF);
 		e:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
 		//e:GetPhysicsObject():EnableCollisions(false);
-		e.IsHornetSeat = true;
-		e.Hornet = self;
+		e.IsHALOV_AV14Seat = true;
+		e.HALOV_AV14 = self;
 		self.Seats[k] = e;
 	end
 
 end
 
-hook.Add("PlayerEnteredVehicle","HornetSeatEnter", function(p,v)
+hook.Add("PlayerEnteredVehicle","HALOV_AV14SeatEnter", function(p,v)
 	if(IsValid(v) and IsValid(p)) then
-		if(v.IsHornetSeat) then
-			p:SetNetworkedEntity("Hornet",v:GetParent());
-            p:SetNetworkedEntity("HornetSeat",v);
-			p:SetNetworkedBool("HornetPassenger",true);
+		if(v.IsHALOV_AV14Seat) then
+			p:SetNetworkedEntity("HALOV_AV14",v:GetParent());
+            p:SetNetworkedEntity("HALOV_AV14Seat",v);
+			p:SetNetworkedBool("HALOV_AV14Passenger",true);
 		end
 	end
 end);
 
-hook.Add("PlayerLeaveVehicle", "HornetSeatExit", function(p,v)
+hook.Add("PlayerLeaveVehicle", "HALOV_AV14SeatExit", function(p,v)
 	if(IsValid(p) and IsValid(v)) then
-		if(v.IsHornetSeat) then
-            if(v.HornetFrontSeat) then
+		if(v.IsHALOV_AV14Seat) then
+            if(v.HALOV_AV14FrontSeat) then
                 local self = v:GetParent();
                 p:SetPos(self:GetPos()+self:GetForward()*0+self:GetUp()*0);
             else
                 p:SetPos(v:GetPos()+v:GetForward()*30+v:GetUp()*30+v:GetRight()*0);
             end
-			p:SetNetworkedEntity("Hornet",NULL);
-            p:SetNetworkedEntity("HornetSeat",NULL);
-			p:SetNetworkedBool("HornetPassenger",false);
+			p:SetNetworkedEntity("HALOV_AV14",NULL);
+            p:SetNetworkedEntity("HALOV_AV14Seat",NULL);
+			p:SetNetworkedBool("HALOV_AV14Passenger",false);
 		end
 	end
 end);
@@ -171,7 +171,7 @@ function ENT:Think()
                         self:GetPos() + self:GetForward() * 40 + self:GetRight() * 35 + self:GetUp() * 10, //1
 						self:GetPos() + self:GetForward() * 40 + self:GetRight() * -35 + self:GetUp() * 10, //1
                     }
-                    self:FireHornetBlast(self.BlastPositions[self.NextBlast], false, 250, 250, true, 8, Sound("weapons/hornet_missle.wav"));
+                    self:FireHALOV_AV14Blast(self.BlastPositions[self.NextBlast], false, 250, 250, true, 8, Sound("weapons/hornet_missle.wav"));
 					self.NextBlast = self.NextBlast + 1;
 					if(self.NextBlast == 3) then
 						self.NextUse.FireBlast = CurTime()+5;
@@ -194,7 +194,7 @@ function ENT:Think()
     self.BaseClass.Think(self);
 end
 
-function ENT:FireHornetBlast(pos,gravity,vel,dmg,white,size,snd)
+function ENT:FireHALOV_AV14Blast(pos,gravity,vel,dmg,white,size,snd)
 	local e = ents.Create("missle_blast");
 	
 	e.Damage = dmg or 600;
@@ -221,22 +221,14 @@ if CLIENT then
 		Engine=Sound("vehicles/hornet_fly.wav"),
 	}
 	
-	hook.Add("ScoreboardShow","HornetScoreDisable", function()
-		local p = LocalPlayer();	
-		local Flying = p:GetNWBool("Hornet");
-		if(Flying) then
-			return false;
-		end
-	end)
-	
 	local View = {}
 	local function CalcView()
 		
 		local p = LocalPlayer();	
-		local Flying = p:GetNWBool("FlyingHornet");
-		local Sitting = p:GetNWBool("HornetPassenger");
+		local Flying = p:GetNWBool("FlyingHALOV_AV14");
+		local Sitting = p:GetNWBool("HALOV_AV14Passenger");
 		local pos, face;
-		local self = p:GetNWEntity("Hornet");
+		local self = p:GetNWEntity("HALOV_AV14");
 	
 		
 		if(Flying) then
@@ -246,7 +238,7 @@ if CLIENT then
 				return View;
 			end
 		elseif(Sitting) then
-			local v = p:GetNWEntity("HornetSeat");	
+			local v = p:GetNWEntity("HALOV_AV14Seat");	
 			if(IsValid(v)) then
 				if(v:GetThirdPersonMode()) then
 					View = HALOVehicleView(self,470,170,fpvPos);		
@@ -256,11 +248,11 @@ if CLIENT then
 		end
 		
 	end
-	hook.Add("CalcView", "HornetView", CalcView)
+	hook.Add("CalcView", "HALOV_AV14View", CalcView)
 	
-	hook.Add( "ShouldDrawLocalPlayer", "HornetDrawPlayerModel", function( p )
-		local self = p:GetNWEntity("Hornet", NULL);
-		local PassengerSeat = p:GetNWEntity("HornetSeat",NULL);
+	hook.Add( "ShouldDrawLocalPlayer", "HALOV_AV14DrawPlayerModel", function( p )
+		local self = p:GetNWEntity("HALOV_AV14", NULL);
+		local PassengerSeat = p:GetNWEntity("HALOV_AV14Seat",NULL);
 		if(IsValid(self)) then
 			if(IsValid(PassengerSeat)) then
 				if(PassengerSeat:GetThirdPersonMode()) then
@@ -283,7 +275,7 @@ if CLIENT then
 		local normal = (self.Entity:GetRight() * -1):GetNormalized();
 		local FWD = self:GetRight();
 		local id = self:EntIndex();
-		for k,v in pairs(self.HornetEnginePos) do
+		for k,v in pairs(self.HALOV_AV14EnginePos) do
 
 			local heatwv = self.Emitter:Add("sprites/heatwave",v+FWD*25);
 			heatwv:SetVelocity(normal*2);
@@ -315,7 +307,7 @@ if CLIENT then
 		local p = LocalPlayer();
 		local Flying = self:GetNWBool("Flying".. self.Vehicle);
 		if(Flying) then
-			self.HornetEnginePos = {
+			self.HALOV_AV14EnginePos = {
 				self:GetPos()+self:GetRight()*-136.5+self:GetUp()*105+self:GetForward()*2,
 				self:GetPos()+self:GetRight()*85.5+self:GetUp()*105+self:GetForward()*2,
 			}
@@ -324,11 +316,11 @@ if CLIENT then
 		self.BaseClass.Think(self)
 	end
 	
-	function HornetReticle()
+	function HALOV_AV14Reticle()
 		
 		local p = LocalPlayer();
-		local Flying = p:GetNWBool("FlyingHornet");
-		local self = p:GetNWEntity("Hornet");
+		local Flying = p:GetNWBool("FlyingHALOV_AV14");
+		local self = p:GetNWEntity("HALOV_AV14");
 		if(Flying and IsValid(self)) then
 			HALO_HUD_DrawHull(1000);
 			HALO_UNSCReticles(self);
@@ -337,6 +329,6 @@ if CLIENT then
 			HALO_HUD_DrawSpeedometer();
 		end
 	end
-	hook.Add("HUDPaint", "HornetReticle", HornetReticle)
+	hook.Add("HUDPaint", "HALOV_AV14Reticle", HALOV_AV14Reticle)
 
 end

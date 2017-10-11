@@ -11,7 +11,7 @@ ENT.Spawnable = false;
 ENT.AdminSpawnable = false;
 
 ENT.EntModel = "models/helios/pelican/pelican_landed.mdl"
-ENT.Vehicle = "pelican"
+ENT.Vehicle = "halov_pelican"
 ENT.StartHealth = 5000;
 ENT.Allegiance = "UNSC";
 
@@ -27,7 +27,7 @@ ENT.NextUse = {Doors = CurTime(),Use = CurTime(),Fire = CurTime(),Switch=CurTime
 
 AddCSLuaFile();
 function ENT:SpawnFunction(pl, tr)
-	local e = ents.Create("pelican");
+	local e = ents.Create("halov_pelican");
 	e:SetPos(tr.HitPos + Vector(0,0,20));
 	e:SetAngles(Angle(0,pl:GetAimVector():Angle().Yaw+0,0));
 	e:Spawn();
@@ -103,8 +103,8 @@ function ENT:SpawnSeats()
 		e:SetUseType(USE_OFF);
 		e:GetPhysicsObject():EnableMotion(false);
 		e:GetPhysicsObject():EnableCollisions(false);
-		e.IsPelicanSeat = true;
-		e.Pelican = self;
+		e.IsHALOV_PelicanSeat = true;
+		e.HALOV_Pelican = self;
 		self.Seats[k] = e;
 	end
 
@@ -139,26 +139,26 @@ function ENT:ToggleDoors()
 	end
 end
 
-hook.Add("PlayerEnteredVehicle","PelicanSeatEnter", function(p,v)
+hook.Add("PlayerEnteredVehicle","HALOV_PelicanSeatEnter", function(p,v)
 	if(IsValid(v) and IsValid(p)) then
-		if(v.IsPelicanSeat) then
-			p:SetNetworkedEntity("Pelican",v:GetParent());
-            p:SetNetworkedEntity("PelicanSeat",v);
+		if(v.IsHALOV_PelicanSeat) then
+			p:SetNetworkedEntity("HALOV_Pelican",v:GetParent());
+            p:SetNetworkedEntity("HALOV_PelicanSeat",v);
 		end
 	end
 end);
 
-hook.Add("PlayerLeaveVehicle", "PelicanSeatExit", function(p,v)
+hook.Add("PlayerLeaveVehicle", "HALOV_PelicanSeatExit", function(p,v)
 	if(IsValid(p) and IsValid(v)) then
-		if(v.IsPelicanSeat) then
-            if(v.PelicanFrontSeat) then
+		if(v.IsHALOV_PelicanSeat) then
+            if(v.HALOV_PelicanFrontSeat) then
                 local self = v:GetParent();
                 p:SetPos(self:GetPos()+self:GetForward()*270+self:GetUp()*170);
             else
                 p:SetPos(v:GetPos()+v:GetForward()*37+v:GetUp()*5+v:GetRight()*0);
             end
-			p:SetNetworkedEntity("Pelican",NULL);
-            p:SetNetworkedEntity("PelicanSeat",NULL);
+			p:SetNetworkedEntity("HALOV_Pelican",NULL);
+            p:SetNetworkedEntity("HALOV_PelicanSeat",NULL);
 		end
 	end
 end);
@@ -207,7 +207,7 @@ function ENT:Think()
 						self:GetPos() + self:GetForward() * 300 + self:GetRight() * 220 + self:GetUp() * 150, //2
 						self:GetPos() + self:GetForward() * 300 + self:GetRight() * -220 + self:GetUp() * 150, //2
                     }
-                    self:FirePelicanBlast(self.BlastPositions[self.NextBlast], false, 250, 300, true, 8, Sound("weapons/hornet_missle.wav"));
+                    self:FireHALOV_PelicanBlast(self.BlastPositions[self.NextBlast], false, 250, 300, true, 8, Sound("weapons/hornet_missle.wav"));
 					self.NextBlast = self.NextBlast + 1;
 					if(self.NextBlast == 5) then
 						self.NextUse.FireBlast = CurTime()+20;
@@ -230,7 +230,7 @@ function ENT:Think()
     self.BaseClass.Think(self);
 end
 
-function ENT:FirePelicanBlast(pos,gravity,vel,dmg,white,size,snd)
+function ENT:FireHALOV_PelicanBlast(pos,gravity,vel,dmg,white,size,snd)
 	local e = ents.Create("missle_blast");
 	
 	e.Damage = dmg or 600;
@@ -270,7 +270,7 @@ if CLIENT then
 		local normal = (self.Entity:GetRight() * -1):GetNormalized();
 		local FWD = self:GetRight();
 		local id = self:EntIndex();
-		for k,v in pairs(self.PelicanEnginePos) do
+		for k,v in pairs(self.HALOV_PelicanEnginePos) do
 
 			local heatwv = self.Emitter:Add("sprites/heatwave",v+FWD*25);
 			heatwv:SetVelocity(normal*2);
@@ -300,7 +300,7 @@ if CLIENT then
 		local p = LocalPlayer();
 		local Flying = self:GetNWBool("Flying".. self.Vehicle);
 		if(Flying) then
-			self.PelicanEnginePos = {
+			self.HALOV_PelicanEnginePos = {
 				self:GetPos()+self:GetForward()*-500+self:GetUp()*280+self:GetRight()*85,
 				self:GetPos()+self:GetForward()*-500+self:GetUp()*280+self:GetRight()*-130,
 				
@@ -314,11 +314,11 @@ if CLIENT then
 	
 	local View = {}
 	local lastpos, lastang;
-	local function PelicanCalcView()
+	local function HALOV_PelicanCalcView()
 		
 		local p = LocalPlayer();
-		local self = p:GetNWEntity("Pelican",NULL)
-        local flying = p:GetNWBool("FlyingPelican");
+		local self = p:GetNWEntity("HALOV_Pelican",NULL)
+        local flying = p:GetNWBool("FlyingHALOV_Pelican");
 		local pos,face;
         if(flying) then
             if(IsValid(self)) then
@@ -341,7 +341,7 @@ if CLIENT then
                 return View;
             end
         else
-            local v = p:GetNWEntity("PelicanSeat",NULL);
+            local v = p:GetNWEntity("HALOV_PelicanSeat",NULL);
             if(IsValid(v)) then
                 if(v:GetThirdPersonMode()) then
                     return HALOVehicleView(self,1100,450,fpvPos);
@@ -349,13 +349,13 @@ if CLIENT then
             end
         end
 	end
-	hook.Add("CalcView", "PelicanView", PelicanCalcView)
+	hook.Add("CalcView", "HALOV_PelicanView", HALOV_PelicanCalcView)
 	
-	function PelicanReticle()
+	function HALOV_PelicanReticle()
 		
 		local p = LocalPlayer();
-		local Flying = p:GetNWBool("FlyingPelican");
-		local self = p:GetNWEntity("Pelican");
+		local Flying = p:GetNWBool("FlyingHALOV_Pelican");
+		local self = p:GetNWEntity("HALOV_Pelican");
 		if(Flying and IsValid(self)) then
 			HALO_HUD_DrawHull(5000);
 			HALO_UNSCReticles(self);
@@ -364,14 +364,6 @@ if CLIENT then
 			HALO_BlastIcon(self,20);
 		end
 	end
-	hook.Add("HUDPaint", "PelicanReticle", PelicanReticle)
+	hook.Add("HUDPaint", "HALOV_PelicanReticle", HALOV_PelicanReticle)
 
-    
-	hook.Add("ScoreboardShow","PelicanScoreDisable", function()
-		local p = LocalPlayer();	
-		local Flying = p:GetNWBool("FlyingPelican");
-		if(Flying) then
-			return false;
-		end
-	end)
 end

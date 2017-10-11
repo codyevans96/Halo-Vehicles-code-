@@ -11,7 +11,7 @@ ENT.Spawnable = false;
 ENT.AdminSpawnable = false;
 
 ENT.EntModel = "models/helios/longsword/longsword_open.mdl"
-ENT.Vehicle = "longsword"
+ENT.Vehicle = "halov_longsword"
 ENT.StartHealth = 4000;
 ENT.Allegiance = "UNSC";
 
@@ -22,12 +22,12 @@ list.Set("HaloVehicles", ENT.PrintName, ENT);
 
 if SERVER then
 
-ENT.FireSound = Sound("weapons/heavy_shoot.wav");
+ENT.FireSound = Sound("weapons/heavybolt.wav");
 ENT.NextUse = {Wings = CurTime(),Use = CurTime(),Fire = CurTime(),};
 
 AddCSLuaFile();
 function ENT:SpawnFunction(pl, tr)
-	local e = ents.Create("longsword");
+	local e = ents.Create("halov_longsword");
 	e:SetPos(tr.HitPos + Vector(0,0,10));
 	e:SetAngles(Angle(0,pl:GetAimVector():Angle().Yaw,0));
 	e:Spawn();
@@ -91,8 +91,8 @@ function ENT:SpawnSeats()
 		e:SetUseType(USE_OFF);
 		e:GetPhysicsObject():EnableMotion(false);
 		e:GetPhysicsObject():EnableCollisions(false);
-		e.IsLongswordSeat = true;
-		e.Longsword = self;
+		e.IsHALOV_LongswordSeat = true;
+		e.HALOV_Longsword = self;
 		self.Seats[k] = e;
 	end
 
@@ -108,26 +108,26 @@ function ENT:Exit(kill)
 	self.BaseClass.Exit(self,kill);
 end
 
-hook.Add("PlayerEnteredVehicle","LongswordSeatEnter", function(p,v)
+hook.Add("PlayerEnteredVehicle","HALOV_LongswordSeatEnter", function(p,v)
 	if(IsValid(v) and IsValid(p)) then
-		if(v.IsLongswordSeat) then
-			p:SetNetworkedEntity("Longsword",v:GetParent());
-            p:SetNetworkedEntity("LongswordSeat",v);
+		if(v.IsHALOV_LongswordSeat) then
+			p:SetNetworkedEntity("HALOV_Longsword",v:GetParent());
+            p:SetNetworkedEntity("HALOV_LongswordSeat",v);
 		end
 	end
 end);
 
-hook.Add("PlayerLeaveVehicle", "LongswordSeatExit", function(p,v)
+hook.Add("PlayerLeaveVehicle", "HALOV_LongswordSeatExit", function(p,v)
 	if(IsValid(p) and IsValid(v)) then
-		if(v.IsLongswordSeat) then
-            if(v.LongswordFrontSeat) then
+		if(v.IsHALOV_LongswordSeat) then
+            if(v.HALOV_LongswordFrontSeat) then
                 local self = v:GetParent();
                 p:SetPos(self:GetPos()+self:GetForward()*270+self:GetUp()*170);
             else
                 p:SetPos(v:GetPos()+v:GetForward()*-100+v:GetUp()*-15+v:GetRight()*-20);
             end
-			p:SetNetworkedEntity("Longsword",NULL);
-            p:SetNetworkedEntity("LongswordSeat",NULL);
+			p:SetNetworkedEntity("HALOV_Longsword",NULL);
+            p:SetNetworkedEntity("HALOV_LongswordSeat",NULL);
 		end
 	end
 end);
@@ -178,7 +178,7 @@ function ENT:Think()
 						self:GetPos() + self:GetForward() * 725 + self:GetRight() * 120 + self:GetUp() * 70, //3
 						self:GetPos() + self:GetForward() * 725 + self:GetRight() * -120 + self:GetUp() * 70, //3
                     }
-                    self:FireLongswordBlast(self.BlastPositions[self.NextBlast], false, 800, 800, true, 8, Sound("weapons/hornet_missle.wav"));
+                    self:FireHALOV_LongswordBlast(self.BlastPositions[self.NextBlast], false, 800, 800, true, 8, Sound("weapons/hornet_missle.wav"));
 					self.NextBlast = self.NextBlast + 1;
 					if(self.NextBlast == 7) then
 						self.NextUse.FireBlast = CurTime()+15;
@@ -201,7 +201,7 @@ function ENT:Think()
     self.BaseClass.Think(self);
 end
 
-function ENT:FireLongswordBlast(pos,gravity,vel,dmg,white,size,snd)
+function ENT:FireHALOV_LongswordBlast(pos,gravity,vel,dmg,white,size,snd)
 	if(self.NextUse.FireBlast < CurTime()) then
 		local e = ents.Create("longsword_blast");
 		
@@ -230,15 +230,7 @@ if CLIENT then
 	ENT.Sounds={
 		Engine=Sound("vehicles/pelican_fly.wav"),
 	}
-	
-	hook.Add("ScoreboardShow","LongswordScoreDisable", function()
-		local p = LocalPlayer();	
-		local Flying = p:GetNWBool("Longsword");
-		if(Flying) then
-			return false;
-		end
-	end)
-	
+
 	function ENT:Initialize()
 		self.Emitter = ParticleEmitter(self:GetPos());
 		self.BaseClass.Initialize(self);
@@ -246,11 +238,11 @@ if CLIENT then
 	
 	local View = {}
 	local lastpos, lastang;
-	local function LongswordCalcView()
+	local function HALOV_LongswordCalcView()
 		
 		local p = LocalPlayer();
-		local self = p:GetNWEntity("Longsword",NULL)
-        local flying = p:GetNWBool("FlyingLongsword");
+		local self = p:GetNWEntity("HALOV_Longsword",NULL)
+        local flying = p:GetNWBool("FlyingHALOV_Longsword");
 		local pos,face;
         if(flying) then
             if(IsValid(self)) then
@@ -273,7 +265,7 @@ if CLIENT then
                 return View;
             end
         else
-            local v = p:GetNWEntity("LongswordSeat",NULL);
+            local v = p:GetNWEntity("HALOV_LongswordSeat",NULL);
             if(IsValid(v)) then
                 if(v:GetThirdPersonMode()) then
                     return HALOVehicleView(self,1880,500,fpvPos);
@@ -281,7 +273,7 @@ if CLIENT then
             end
         end
 	end
-	hook.Add("CalcView", "LongswordView", LongswordCalcView)
+	hook.Add("CalcView", "HALOV_LongswordView", HALOV_LongswordCalcView)
 	
 	function ENT:Effects()
 	
@@ -291,7 +283,7 @@ if CLIENT then
 		local normal = (self.Entity:GetRight() * -1):GetNormalized();
 		local FWD = self:GetRight();
 		local id = self:EntIndex();
-		for k,v in pairs(self.LongswordEnginePos) do
+		for k,v in pairs(self.HALOV_LongswordEnginePos) do
 			
 			local blue = self.FXEmitter:Add("sprites/orangecore1",v+FWD*25)
 			blue:SetVelocity(normal)
@@ -313,7 +305,7 @@ if CLIENT then
 		local p = LocalPlayer();
 		local Flying = self:GetNWBool("Flying".. self.Vehicle);
 		if(Flying) then
-			self.LongswordEnginePos = {
+			self.HALOV_LongswordEnginePos = {
 				self:GetPos()+self:GetRight()*-325+self:GetUp()*110+self:GetForward()*-485,
 				self:GetPos()+self:GetRight()*-365+self:GetUp()*110+self:GetForward()*-485,
 				self:GetPos()+self:GetRight()*-407.5+self:GetUp()*110+self:GetForward()*-485,
@@ -331,11 +323,11 @@ if CLIENT then
 		self.BaseClass.Think(self)
 	end
 	
-	function LongswordReticle()
+	function HALOV_LongswordReticle()
 		
 		local p = LocalPlayer();
-		local Flying = p:GetNWBool("FlyingLongsword");
-		local self = p:GetNWEntity("Longsword");
+		local Flying = p:GetNWBool("FlyingHALOV_Longsword");
+		local self = p:GetNWEntity("HALOV_Longsword");
 		if(Flying and IsValid(self)) then
 			HALO_HUD_DrawHull(4000);
 			HALO_UNSCReticles(self);
@@ -344,6 +336,6 @@ if CLIENT then
 			HALO_HUD_DrawSpeedometer();
 		end
 	end
-	hook.Add("HUDPaint", "LongswordReticle", LongswordReticle)
+	hook.Add("HUDPaint", "HALOV_LongswordReticle", HALOV_LongswordReticle)
 
 end

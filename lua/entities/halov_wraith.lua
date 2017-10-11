@@ -2,7 +2,7 @@ ENT.RenderGroup = RENDERGROUP_BOTH
 ENT.Base = "halohover_base"
 ENT.Type = "vehicle"
  
-ENT.PrintName = "T-38 Tyrant"
+ENT.PrintName = "T-26 Wraith"
 ENT.Author = "Cody Evans"
 --- BASE AUTHOR: Liam0102 ---
 ENT.Category = "Halo Vehicles: Covenant"
@@ -10,22 +10,22 @@ ENT.AutomaticFrameAdvance = true
 ENT.Spawnable = false;
 ENT.AdminOnly = false;
  
-ENT.Vehicle = "tyrant";
-ENT.EntModel = "models/helios/tyrant/tyrant.mdl";
+ENT.Vehicle = "halov_wraith";
+ENT.EntModel = "models/helios/wraith/wraith_open.mdl";
  
-ENT.StartHealth = 6000;
+ENT.StartHealth = 3000;
  
 list.Set("HaloVehicles", ENT.PrintName, ENT);
 
 if SERVER then
  
 ENT.NextUse = {Use = CurTime(),Fire = CurTime()};
-ENT.FireSound = Sound("weapons/banshee_shoot.wav");
+ENT.FireSound = Sound("weapons/spectre_shoot.wav");
  
  
 AddCSLuaFile();
 function ENT:SpawnFunction(pl, tr)
-    local e = ents.Create("tyrant");
+    local e = ents.Create("halov_wraith");
     e:SetPos(tr.HitPos + Vector(0,0,10));
     e:SetAngles(Angle(0,pl:GetAimVector():Angle().Yaw+0,0));
     e:Spawn();
@@ -35,24 +35,34 @@ end
  
 function ENT:Initialize()
     self.BaseClass.Initialize(self);
-    local driverPos = self:GetPos()+self:GetUp()*705+self:GetForward()*-10+self:GetRight()*0;
+    local driverPos = self:GetPos()+self:GetUp()*75+self:GetForward()*-20+self:GetRight()*0;
     local driverAng = self:GetAngles()+Angle(0,-90,0);
     self:SpawnChairs(driverPos,driverAng,false)
    
-    self.ForwardSpeed = 0;
-    self.BoostSpeed = 0;
-    self.AccelSpeed = 0;
+    self.ForwardSpeed = 300;
+    self.BoostSpeed = 300;
+    self.AccelSpeed = 8;
     self.WeaponLocations = {
-        Main = self:GetPos()+self:GetRight()*100+self:GetUp()*15,
-    }
+		Left = self:GetPos()+self:GetForward()*105+self:GetUp()*50+self:GetRight()*-40,
+		Right = self:GetPos()+self:GetForward()*105+self:GetUp()*50+self:GetRight()*40,
+	}
     self:SpawnWeapons();
     self.HoverMod = 0.5;
-    self.StartHover = 1;
-    self.StandbyHoverAmount = 1; 
+    self.StartHover = 50;
+    self.StandbyHoverAmount = 30; 
+	self.HoverMod = 40;
     self.SpeederClass = 2;
+	self.Bullet = HALOCreateBulletStructure(100,"plasma");
+	self.FireDelay = 0.25;
+	self.DontOverheat = true;
     self.CanBack = true;
-    self.CannonLocation = self:GetPos()+self:GetUp()*500+self:GetForward()*-300;
+	self.CanShoot = true;
+	self.AlternateFire = true;
+    self.CannonLocation = self:GetPos()+self:GetUp()*100+self:GetForward()*50;
     self:SpawnCannon(self:GetAngles()+Angle(0,0,0));
+	self.WeaponDir = self:GetAngles():Forward()*-1;
+	self:SpawnWeapons();
+	self.FireGroup = {"Left","Right",};
  
     self.ExitModifier = {x=0,y=-400,z=5}
    
@@ -60,14 +70,14 @@ end
  
 function ENT:FireBlast(pos,gravity,vel,ang)
     if(self.NextUse.FireBlast < CurTime()) then
-        local e = ents.Create("tyrant_blast");
+        local e = ents.Create("wraith_blast");
         e:SetPos(pos);
         e:Spawn();
         e:Activate();
-        e:Prepare(self,Sound("weapons/hevplasma_shoot.wav"),gravity,vel,ang);
+        e:Prepare(self,Sound("weapons/wraith_shoot.wav"),gravity,vel,ang);
         e:SetColor(Color(255,255,255,1));
        
-        self.NextUse.FireBlast = CurTime() + 5;
+        self.NextUse.FireBlast = CurTime() + 3;
     end
    
 end
@@ -77,59 +87,35 @@ function ENT:Enter(p,driver)
     self:Rotorwash(false);
 end
  
-hook.Add("PlayerEnteredVehicle","TyrantSeatEnter", function(p,v)
+hook.Add("PlayerEnteredVehicle","HALOV_WraithSeatEnter", function(p,v)
     if(IsValid(v) and IsValid(p)) then
-        if(v.IsTyrantSeat) then
-            p:SetNetworkedEntity("Tyrant",v:GetParent());
-            p:SetNetworkedEntity("TyrantSeat",v);
+        if(v.IsHALOV_WraithSeat) then
+            p:SetNetworkedEntity("HALOV_Wraith",v:GetParent());
+            p:SetNetworkedEntity("HALOV_WraithSeat",v);
             p:SetAllowWeaponsInVehicle( false )
         end
     end
 end);
  
-hook.Add("PlayerLeaveVehicle", "TyrantSeatExit", function(p,v)
+hook.Add("PlayerLeaveVehicle", "HALOV_WraithSeatExit", function(p,v)
     if(IsValid(p) and IsValid(v)) then
-        if(v.IsTyrantSeat) then
-            local e = v.Tyrant;
+        if(v.IsHALOV_WraithSeat) then
+            local e = v.HALOV_Wraith;
             if(IsValid(e)) then
                 p:SetEyeAngles(e:GetAngles()+Angle(0,0,0))
             end
-            p:SetNetworkedEntity("TyrantSeat",NULL);
-            p:SetNetworkedEntity("Tyrant",NULL);
+            p:SetNetworkedEntity("HALOV_WraithSeat",NULL);
+            p:SetNetworkedEntity("HALOV_Wraith",NULL);
         end
     end
 end);
  
-function ENT:FireWeapons()
- 
-    if(self.NextUse.Fire < CurTime()) then
-        local e = self.Cannon;
-        local WeaponPos = {
-            e:GetPos()+e:GetRight()*45+e:GetForward()*-110,
-            e:GetPos()+e:GetRight()*-45+e:GetForward()*-110,
-        }
-        for k,v in pairs(WeaponPos) do
-            local tr = util.TraceLine({
-                start = self:GetPos(),
-                endpos = self:GetPos() + self.Cannon:GetForward()*-10000,
-                filter = {self,self.Cannon},
-            })
-            self.Bullet.Src     = v:GetPos();
-            self.Bullet.Attacker = self.Pilot or self; 
-            self.Bullet.Dir = self.Pilot:GetAimVector():Angle():Forward();
- 
-            v:FireBullets(self.Bullet)
-        end
-        self:EmitSound(self.FireSound, 120, math.random(90,110));
-    end
-end
- 
 function ENT:SpawnCannon(ang)
    
     local e = ents.Create("prop_physics");
-    e:SetPos(self:GetPos()+self:GetUp()*460+self:GetForward()*0+self:GetRight()*0);
+    e:SetPos(self:GetPos()+self:GetUp()*130+self:GetForward()*-150+self:GetRight()*1.5);
     e:SetAngles(ang);
-    e:SetModel("models/helios/tyrant/tyrant_cannon.mdl");
+    e:SetModel("models/helios/wraith/wraith_gun.mdl");
     e:SetParent(self);
     e:Spawn();
     e:Activate();
@@ -153,12 +139,14 @@ function ENT:Think()
             if(p <= -0 and p >= -40) then
                 p = -0;
             elseif(p >= -300 and p <= 280) then
-                p = 3;
+                p = 0;
             end
-            self.Cannon:SetAngles(Angle(p,self:GetAngles().y,self:GetAngles().r));
-            if(self.Pilot:KeyDown(IN_ATTACK)) then
-                self:FireBlast(self.Cannon:GetPos()+self.Cannon:GetForward()*20+self:GetUp()*60,true,100,self.Cannon:GetAngles():Forward());
+            self.Cannon:SetAngles(Angle(p,aim.y+0,0));
+            if(self.Pilot:KeyDown(IN_ATTACK2)) then
+                self:FireBlast(self.Cannon:GetPos()+self.Cannon:GetForward()*0+self:GetUp()*15,true,100,self.Cannon:GetAngles():Forward());
             end
+			lastY = aim.y;
+			self:NextThink(CurTime());
         end
        
     end
@@ -176,9 +164,9 @@ end
 local ZAxis = Vector(0,0,1);
  
 function ENT:PhysicsSimulate( phys, deltatime )
-    self.BackPos = self:GetPos()+self:GetRight()*-200+self:GetUp()*5;
-    self.FrontPos = self:GetPos()+self:GetRight()*200+self:GetUp()*5;
-    self.MiddlePos = self:GetPos()+self:GetUp()*5;
+    self.BackPos = self:GetPos()+self:GetRight()*-200+self:GetUp()*0;
+    self.FrontPos = self:GetPos()+self:GetRight()*300+self:GetUp()*0;
+    self.MiddlePos = self:GetPos()+self:GetUp()*0;
     if(self.Inflight) then
         local UP = ZAxis;
         self.RightDir = self.Entity:GetRight();
@@ -208,7 +196,7 @@ end
  
 if CLIENT then
     ENT.Sounds={
-        Engine=Sound(""),
+        Engine=Sound("vehicles/wraith_fly.wav"),
     }
    
     local Health = 0;
@@ -232,15 +220,15 @@ if CLIENT then
     local function CalcView()
        
         local p = LocalPlayer();
-        local self = p:GetNWEntity("Tyrant", NULL)
+        local self = p:GetNWEntity("HALOV_Wraith", NULL)
         local DriverSeat = p:GetNWEntity("DriverSeat",NULL);
-        local TyrantSeat = p:GetNWEntity("TyrantSeat",NULL);
-        local pass = p:GetNWEntity("TyrantSeat",NULL);
+        local HALOV_WraithSeat = p:GetNWEntity("HALOV_WraithSeat",NULL);
+        local pass = p:GetNWEntity("HALOV_WraithSeat",NULL);
         if(IsValid(self)) then
  
             if(IsValid(DriverSeat)) then
                 if(DriverSeat:GetThirdPersonMode()) then
-                    local pos = self:GetPos()+self:GetForward()*-1000+self:GetUp()*900+self:GetRight()*500;
+                    local pos = self:GetPos()+self:GetForward()*-500+self:GetUp()*200;
                     local face = self:GetAngles() + Angle(0,0,0);
                         View.origin = pos;
                         View.angles = face;
@@ -250,7 +238,7 @@ if CLIENT then
        
  
             if(IsValid(pass)) then
-                if(TyrantSeat:GetThirdPersonMode()) then
+                if(HALOV_WraithSeat:GetThirdPersonMode()) then
                         View =  HALOVehicleView(self,1000,600,fpvPos);
                     return View;
                     else
@@ -260,13 +248,13 @@ if CLIENT then
             end
         end
     end
-    hook.Add("CalcView", "TyrantView", CalcView)
+    hook.Add("CalcView", "HALOV_WraithView", CalcView)
    
-    hook.Add( "ShouldDrawLocalPlayer", "TyrantDrawPlayerModel", function( p )
-        local self = p:GetNWEntity("Tyrant", NULL);
+    hook.Add( "ShouldDrawLocalPlayer", "HALOV_WraithDrawPlayerModel", function( p )
+        local self = p:GetNWEntity("HALOV_Wraith", NULL);
         local DriverSeat = p:GetNWEntity("DriverSeat",NULL);
-        local TyrantSeat = p:GetNWEntity("TyrantSeat",NULL);
-        local pass = p:GetNWEntity("TyrantSeat",NULL);
+        local HALOV_WraithSeat = p:GetNWEntity("HALOV_WraithSeat",NULL);
+        local pass = p:GetNWEntity("HALOV_WraithSeat",NULL);
         if(IsValid(self)) then
             if(IsValid(DriverSeat)) then
                 if(DriverSeat:GetThirdPersonMode()) then
@@ -274,50 +262,85 @@ if CLIENT then
                 end
             end
             if(IsValid(pass)) then
-                if(TyrantSeat:GetThirdPersonMode()) then
+                if(HALOV_WraithSeat:GetThirdPersonMode()) then
                     return false;
                 end
             end
         end
     end);
+	
+	function ENT:Effects()
+	
+
+		local p = LocalPlayer();
+		local roll = math.Rand(-45,45);
+		local normal = (self.Entity:GetRight() * -1):GetNormalized();
+		local FWD = self:GetRight();
+		local id = self:EntIndex();
+		for k,v in pairs(self.SmallHALOV_WraithPos) do
+			
+			local blue = self.FXEmitter:Add("sprites/bluecore",v+FWD*25)
+			blue:SetVelocity(normal)
+			blue:SetDieTime(0.05)
+			blue:SetStartAlpha(155)
+			blue:SetEndAlpha(8)
+			blue:SetStartSize(5)
+			blue:SetEndSize(1)
+			blue:SetRoll(roll)
+			blue:SetColor(255,255,255)
+
+		end
+		for k,v in pairs(self.BigHALOV_WraithPos) do
+			
+			local blue = self.FXEmitter:Add("sprites/bluecore",v+FWD*25)
+			blue:SetVelocity(normal)
+			blue:SetDieTime(0.05)
+			blue:SetStartAlpha(95)
+			blue:SetEndAlpha(30)
+			blue:SetStartSize(12)
+			blue:SetEndSize(5)
+			blue:SetRoll(roll)
+			blue:SetColor(255,255,255)
+
+		end
+	end
+	
+	function ENT:Think()
+	
+		
+		
+		local p = LocalPlayer();
+		local Flying = self:GetNWBool("Flying".. self.Vehicle);
+		if(Flying) then
+			self.SmallHALOV_WraithPos = {
+				self:GetPos()+self:GetRight()*-148.5+self:GetUp()*26+self:GetForward()*-12,
+				self:GetPos()+self:GetRight()*99+self:GetUp()*26+self:GetForward()*-12,
+				self:GetPos()+self:GetRight()*-158.5+self:GetUp()*16.5+self:GetForward()*-12,
+				self:GetPos()+self:GetRight()*109+self:GetUp()*16.5+self:GetForward()*-12,
+			}
+			self.BigHALOV_WraithPos = {
+				self:GetPos()+self:GetRight()*-24.8+self:GetUp()*74+self:GetForward()*-195,
+			}
+			self:Effects();
+		end
+		self.BaseClass.Think(self)
+	end
    
-    function TyrantReticle()
+    function HALOV_WraithReticle()
    
         local p = LocalPlayer();
-        local Flying = p:GetNWBool("FlyingTyrant");
-        local self = p:GetNWEntity("Tyrant");
+        local Flying = p:GetNWBool("FlyingHALOV_Wraith");
+        local self = p:GetNWEntity("HALOV_Wraith");
         if(Flying and IsValid(self)) then      
-surface.SetDrawColor( color_white )	
-			local CannonPos = Cannon:GetPos()+Cannon:GetForward()*-140;
-			local tr = util.TraceLine({
-				start = CannonPos,
-				endpos = CannonPos + Cannon:GetForward()*10000,
-				filter = {self,Cannon},
-			});
-			
-			local vpos = tr.HitPos;
-			local screen = vpos:ToScreen();
-			local x,y;
-			for k,v in pairs(screen) do
-				if(k == "x") then
-					x = v;
-				elseif(k == "y") then
-					y = v;
-				end
-			end
-			
-			local w = ScrW()/100*2;
-			local h = w;
-			x = x - w/2;
-			y = y - h/2;
-			surface.SetMaterial( Material( "hud/reticle_heavy.png", "noclamp" ) )
-			surface.DrawTexturedRectUV( x , y, w, h, 0, 0, 1, 1 )
-			
-            HALO_Speeder_DrawHull(6000)
+            local WeaponsPos = {self:GetPos()};
+           
+            HALO_Cannon_Reticles(self,WeaponsPos)
+            HALO_Speeder_DrawHull(3000)
+			HALO_Speeder_DrawSpeedometer()
  
         end
     end
-    hook.Add("HUDPaint", "TyrantReticle", TyrantReticle)
+    hook.Add("HUDPaint", "HALOV_WraithReticle", HALOV_WraithReticle)
    
    
 end

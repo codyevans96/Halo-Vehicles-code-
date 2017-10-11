@@ -11,7 +11,7 @@ ENT.Spawnable = false;
 ENT.AdminSpawnable = false;
  
 ENT.EntModel = "models/helios/civilian_transport_ship/civilian_transport_ship.mdl"
-ENT.Vehicle = "civil"
+ENT.Vehicle = "halov_civil"
 ENT.StartHealth = 5000;
 ENT.Allegiance = "UNSC";
 
@@ -28,7 +28,7 @@ ENT.HyperDriveSound = Sound("vehicles/hyperdrive.mp3");
  
 AddCSLuaFile();
 function ENT:SpawnFunction(pl, tr)
-    local e = ents.Create("civil");
+    local e = ents.Create("halov_civil");
     e:SetPos(tr.HitPos + Vector(0,0,0));
     e:SetAngles(Angle(0,pl:GetAimVector():Angle().Yaw,0));
     e:Spawn();
@@ -170,8 +170,8 @@ function ENT:SpawnSeats()
         e:SetUseType(USE_OFF);
         e:GetPhysicsObject():EnableMotion(false);
         e:GetPhysicsObject():EnableCollisions(false);
-        e.IsCivilSeat = true;
-        e.Civil = self;
+        e.IsHALOV_CivilSeat = true;
+        e.HALOV_Civil = self;
  
         self.Seats[k] = e;
     end
@@ -188,26 +188,26 @@ function ENT:Exit(kill)
 	self:SetModel(self.WingsModel);
 end
 
-hook.Add("PlayerEnteredVehicle","CivilSeatEnter", function(p,v)
+hook.Add("PlayerEnteredVehicle","HALOV_CivilSeatEnter", function(p,v)
 	if(IsValid(v) and IsValid(p)) then
-		if(v.IsCivilSeat) then
-			p:SetNetworkedEntity("Civil",v:GetParent());
-            p:SetNetworkedEntity("CivilSeat",v);
+		if(v.IsHALOV_CivilSeat) then
+			p:SetNetworkedEntity("HALOV_Civil",v:GetParent());
+            p:SetNetworkedEntity("HALOV_CivilSeat",v);
 		end
 	end
 end);
 
-hook.Add("PlayerLeaveVehicle", "CivilSeatExit", function(p,v)
+hook.Add("PlayerLeaveVehicle", "HALOV_CivilSeatExit", function(p,v)
 	if(IsValid(p) and IsValid(v)) then
-		if(v.IsCivilSeat) then
-            if(v.CivilFrontSeat) then
+		if(v.IsHALOV_CivilSeat) then
+            if(v.HALOV_CivilFrontSeat) then
                 local self = v:GetParent();
                 p:SetPos(self:GetPos()+self:GetForward()*270+self:GetUp()*170);
             else
                 p:SetPos(v:GetPos()+v:GetForward()*280+v:GetUp()*-470+v:GetRight()*0);
             end
-			p:SetNetworkedEntity("Civil",NULL);
-            p:SetNetworkedEntity("CivilSeat",NULL);
+			p:SetNetworkedEntity("HALOV_Civil",NULL);
+            p:SetNetworkedEntity("HALOV_CivilSeat",NULL);
 		end
 	end
 end);
@@ -251,7 +251,7 @@ if CLIENT then
     function ENT:Think()
         self.BaseClass.Think(self);
         local p = LocalPlayer();
-        local IsFlying = p:GetNWEntity("Civil");
+        local IsFlying = p:GetNWEntity("HALOV_Civil");
         local Flying = self:GetNWBool("Flying".. self.Vehicle);
        
         if(Flying) then
@@ -304,26 +304,26 @@ if CLIENT then
 	function CalcView()
 		
 		local p = LocalPlayer();
-		local self = p:GetNetworkedEntity("Civil", NULL)
+		local self = p:GetNetworkedEntity("HALOV_Civil", NULL)
 		if(IsValid(self)) then
 			local fpvPos = self:GetPos()+self:GetUp()*20+self:GetForward()*350;
 			View = HALOVehicleView(self,2575,685,fpvPos,true);		
 			return View;
 		end
 	end
-    hook.Add("CalcView", "CivilView", CalcView)
+    hook.Add("CalcView", "HALOV_CivilView", CalcView)
    
-    function CivilReticle()
+    function HALOV_CivilReticle()
        
         local p = LocalPlayer();
-        local Flying = p:GetNWBool("FlyingCivil");
-        local self = p:GetNWEntity("Civil");
+        local Flying = p:GetNWBool("FlyingHALOV_Civil");
+        local self = p:GetNWEntity("HALOV_Civil");
         if(Flying and IsValid(self)) then
             HALO_HUD_DrawHull(5000);
             HALO_HUD_Compass(self);
             HALO_HUD_DrawSpeedometer();
         end
     end
-    hook.Add("HUDPaint", "CivilReticle", CivilReticle)
+    hook.Add("HUDPaint", "HALOV_CivilReticle", HALOV_CivilReticle)
  
 end

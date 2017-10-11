@@ -11,7 +11,7 @@ ENT.Spawnable = false;
 ENT.AdminSpawnable = false;
 
 ENT.EntModel = "models/helios/phantom/phantom_open.mdl"
-ENT.Vehicle = "phantom"
+ENT.Vehicle = "halov_phantom"
 ENT.StartHealth = 5000;
 ENT.Allegiance = "Covenant";
 
@@ -22,12 +22,12 @@ list.Set("HaloVehicles", ENT.PrintName, ENT);
 
 if SERVER then
 
-ENT.FireSound = Sound("weapons/banshee_shoot.wav");
+ENT.FireSound = Sound("weapons/phantom_shoot.wav");
 ENT.NextUse = {Doors = CurTime(),Use = CurTime(),Fire = CurTime(),};
 
 AddCSLuaFile();
 function ENT:SpawnFunction(pl, tr)
-	local e = ents.Create("phantom");
+	local e = ents.Create("halov_phantom");
 	e:SetPos(tr.HitPos + Vector(0,0,10));
 	e:SetAngles(Angle(0,pl:GetAimVector():Angle().Yaw,0));
 	e:Spawn();
@@ -52,7 +52,7 @@ function ENT:Initialize()
 	self.CanStandby = true;
 	self.CanBack = true;
     self.CanStrafe = true;
-	self.CanShoot = true;
+	self.CanShoot = false;
 	self.DontOverheat = true;
 	self.AlternateFire = true;
 	self.FireGroup = {"Right","Left"}
@@ -63,6 +63,7 @@ function ENT:Initialize()
 	
 	self.Bullet = HALOCreateBulletStructure(80,"red");
 	self.FireDelay = 0.25;
+	self.NextBlast = 1;
 	
 	self.SeatPos = {
 	
@@ -120,33 +121,33 @@ function ENT:SpawnSeats()
 		e:SetUseType(USE_OFF);
 		e:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
 		//e:GetPhysicsObject():EnableCollisions(false);
-		e.IsPhantomSeat = true;
-		e.Phantom = self;
+		e.IsHALOV_PhantomSeat = true;
+		e.HALOV_Phantom = self;
 		self.Seats[k] = e;
 	end
 
 end
 
-hook.Add("PlayerEnteredVehicle","PhantomSeatEnter", function(p,v)
+hook.Add("PlayerEnteredVehicle","HALOV_PhantomSeatEnter", function(p,v)
 	if(IsValid(v) and IsValid(p)) then
-		if(v.IsPhantomSeat) then
-			p:SetNetworkedEntity("Phantom",v:GetParent());
-            p:SetNetworkedEntity("PhantomSeat",v);
+		if(v.IsHALOV_PhantomSeat) then
+			p:SetNetworkedEntity("HALOV_Phantom",v:GetParent());
+            p:SetNetworkedEntity("HALOV_PhantomSeat",v);
 		end
 	end
 end);
 
-hook.Add("PlayerLeaveVehicle", "PhantomSeatExit", function(p,v)
+hook.Add("PlayerLeaveVehicle", "HALOV_PhantomSeatExit", function(p,v)
 	if(IsValid(p) and IsValid(v)) then
-		if(v.IsPhantomSeat) then
-            if(v.PhantomFrontSeat) then
+		if(v.IsHALOV_PhantomSeat) then
+            if(v.HALOV_PhantomFrontSeat) then
                 local self = v:GetParent();
                 p:SetPos(self:GetPos()+self:GetForward()*270+self:GetUp()*170);
             else
                 p:SetPos(v:GetPos()+v:GetForward()*0+v:GetUp()*30+v:GetRight()*0);
             end
-			p:SetNetworkedEntity("Phantom",NULL);
-            p:SetNetworkedEntity("PhantomSeat",NULL);
+			p:SetNetworkedEntity("HALOV_Phantom",NULL);
+            p:SetNetworkedEntity("HALOV_PhantomSeat",NULL);
 		end
 	end
 end);
@@ -189,6 +190,59 @@ function ENT:ToggleDoors()
 	end
 end
 
+function ENT:Think()
+ 
+    if(self.Inflight) then
+        if(IsValid(self.Pilot)) then
+            if(IsValid(self.Pilot)) then 
+                if(self.Pilot:KeyDown(IN_ATTACK) and self.NextUse.FireBlast < CurTime()) then
+                    self.BlastPositions = {
+                        self:GetPos() + self:GetForward() * 380 + self:GetRight() * 0 + self:GetUp() * 10, //1
+                    }
+                    self:FireHALOV_PhantomBlast(self.BlastPositions[self.NextBlast], false, 50, 50, true, 8, Sound("weapons/phantom_shoot.wav"));
+					self.NextBlast = self.NextBlast + 1;
+					if(self.NextBlast == 2) then
+						self.NextUse.FireBlast = CurTime()+0.45;
+						self:SetNWBool("OutOfMissiles",true);
+						self:SetNWInt("FireBlast",self.NextUse.FireBlast)
+						self.NextBlast = 1;
+					end
+					
+					
+                end
+			end
+		end
+		
+		if(self.NextUse.FireBlast < CurTime()) then
+			self:SetNWBool("OutOfMissiles",false);
+		end
+        self:SetNWInt("Overheat",self.Overheat);
+        self:SetNWBool("Overheated",self.Overheated);
+    end
+    self.BaseClass.Think(self);
+end
+
+function ENT:FireHALOV_PhantomBlast(pos,gravity,vel,dmg,white,size,snd)
+	if(self.NextUse.FireBlast < CurTime()) then
+		local e = ents.Create("shadow_blast");
+		
+		e.Damage = dmg or 600;
+		e.IsWhite = white or false;
+		e.StartSize = size or 20;
+		e.EndSize = e.StartSize*2 or 15;
+		
+		
+		local sound = snd or Sound("weapons/phantom_shoot.wav");
+		
+		e:SetPos(pos);
+		e:Spawn();
+		e:Activate();
+		e:Prepare(self,sound,gravity,vel);
+		e:SetColor(Color(255,255,255,1));
+	end
+	
+end
+
 end
 
 if CLIENT then
@@ -200,14 +254,6 @@ if CLIENT then
 		Engine=Sound("vehicles/covenant_fly.wav"),
 	}
 	ENT.CanFPV = false;
-
-	hook.Add("ScoreboardShow","PhantomScoreDisable", function()
-		local p = LocalPlayer();	
-		local Flying = p:GetNWBool("FlyingPhantom");
-		if(Flying) then
-			return false;
-		end
-	end)
 	
 	function ENT:Initialize()
 		self.Emitter = ParticleEmitter(self:GetPos());
@@ -222,7 +268,7 @@ if CLIENT then
 		local normal = (self.Entity:GetRight() * -1):GetNormalized();
 		local FWD = self:GetRight();
 		local id = self:EntIndex();
-		for k,v in pairs(self.PhantomEnginePos) do
+		for k,v in pairs(self.HALOV_PhantomEnginePos) do
 
 			local heatwv = self.Emitter:Add("sprites/heatwave",v+FWD*25);
 			heatwv:SetVelocity(normal*2);
@@ -245,7 +291,7 @@ if CLIENT then
 			blue:SetColor(218,180,214)
 
 		end
-		for k,v in pairs(self.PhantomSupportPos) do
+		for k,v in pairs(self.HALOV_PhantomSupportPos) do
 
 			local heatwv = self.Emitter:Add("sprites/heatwave",v+FWD*25);
 			heatwv:SetVelocity(normal*2);
@@ -275,11 +321,11 @@ if CLIENT then
 		local p = LocalPlayer();
 		local Flying = self:GetNWBool("Flying".. self.Vehicle);
 		if(Flying) then
-			self.PhantomEnginePos = {
+			self.HALOV_PhantomEnginePos = {
 				self:GetPos()+self:GetForward()*-310+self:GetUp()*200+self:GetRight()*135,
 				self:GetPos()+self:GetForward()*-310+self:GetUp()*200+self:GetRight()*-185,
 			}
-			self.PhantomSupportPos = {
+			self.HALOV_PhantomSupportPos = {
 				self:GetPos()+self:GetForward()*-90+self:GetUp()*115+self:GetRight()*95,
 				self:GetPos()+self:GetForward()*80+self:GetUp()*115+self:GetRight()*95,
 				self:GetPos()+self:GetForward()*80+self:GetUp()*115+self:GetRight()*-140,
@@ -306,10 +352,10 @@ if CLIENT then
 	local function CalcView()
 		
 		local p = LocalPlayer();	
-		local Flying = p:GetNWBool("FlyingPhantom");
-		local Sitting = p:GetNWBool("PhantomPassenger");
+		local Flying = p:GetNWBool("FlyingHALOV_Phantom");
+		local Sitting = p:GetNWBool("HALOV_PhantomPassenger");
 		local pos, face;
-		local self = p:GetNWEntity("Phantom");
+		local self = p:GetNWEntity("HALOV_Phantom");
 	
 		
 		if(Flying) then
@@ -319,7 +365,7 @@ if CLIENT then
 				return View;
 			end
 		elseif(Sitting) then
-			local v = p:GetNWEntity("PhantomSeat");	
+			local v = p:GetNWEntity("HALOV_PhantomSeat");	
 			if(IsValid(v)) then
 				if(v:GetThirdPersonMode()) then
 					View = HALOVehicleView(self,800,380,fpvPos);		
@@ -329,13 +375,13 @@ if CLIENT then
 		end
 		
 	end
-	hook.Add("CalcView", "PhantomView", CalcView)
+	hook.Add("CalcView", "HALOV_PhantomView", CalcView)
 
-	function PhantomReticle()
+	function HALOV_PhantomReticle()
 		
 		local p = LocalPlayer();
-		local Flying = p:GetNWBool("FlyingPhantom");
-		local self = p:GetNWEntity("Phantom");
+		local Flying = p:GetNWBool("FlyingHALOV_Phantom");
+		local self = p:GetNWEntity("HALOV_Phantom");
 		if(Flying and IsValid(self)) then
 			HALO_HUD_DrawHull(5000);
 			HALO_CovenantReticles(self);
@@ -343,6 +389,6 @@ if CLIENT then
 			HALO_HUD_DrawSpeedometer();
 		end
 	end
-	hook.Add("HUDPaint", "PhantomReticle", PhantomReticle)
+	hook.Add("HUDPaint", "HALOV_PhantomReticle", HALOV_PhantomReticle)
 
 end

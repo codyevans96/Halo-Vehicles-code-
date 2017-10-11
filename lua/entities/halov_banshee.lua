@@ -2,7 +2,7 @@ ENT.RenderGroup = RENDERGROUP_OPAQUE
 ENT.Base = "haloveh_base"
 ENT.Type = "vehicle"
 
-ENT.PrintName = "T-27 Banshee"
+ENT.PrintName = "T-26B Banshee"
 ENT.Author = "Cody Evans"
 --- BASE AUTHOR: Liam0102 ---
 ENT.Category = "Halo Vehicles: Covenant"
@@ -10,8 +10,8 @@ ENT.AutomaticFrameAdvance = true
 ENT.Spawnable = false;
 ENT.AdminSpawnable = false;
 
-ENT.EntModel = "models/helios/space_banshee/space_banshee.mdl"
-ENT.Vehicle = "banshee2"
+ENT.EntModel = "models/helios/banshee/banshee.mdl"
+ENT.Vehicle = "halov_banshee"
 ENT.StartHealth = 1000;
 ENT.Allegiance = "Covenant";
 
@@ -24,7 +24,7 @@ ENT.NextUse = {Wings = CurTime(),Use = CurTime(),Fire = CurTime(),};
 
 AddCSLuaFile();
 function ENT:SpawnFunction(pl, tr)
-	local e = ents.Create("banshee2");
+	local e = ents.Create("halov_banshee");
 	e:SetPos(tr.HitPos + Vector(0,0,0));
 	e:SetAngles(Angle(0,pl:GetAimVector():Angle().Yaw,0));
 	e:Spawn();
@@ -37,23 +37,23 @@ function ENT:Initialize()
 	self:SetNWInt("Health",self.StartHealth);
 	
 	self.WeaponLocations = {
-		Left = self:GetPos()+self:GetForward()*190+self:GetUp()*20+self:GetRight()*-28,
-		Right = self:GetPos()+self:GetForward()*190+self:GetUp()*20+self:GetRight()*28,
+		Left = self:GetPos()+self:GetForward()*90+self:GetUp()*20+self:GetRight()*-28,
+		Right = self:GetPos()+self:GetForward()*90+self:GetUp()*20+self:GetRight()*28,
 	}
 	self.WeaponsTable = {};
-	self.BoostSpeed = 2500;
-	self.ForwardSpeed = 2500;
+	self.BoostSpeed = 1200;
+	self.ForwardSpeed = 1200;
 	self.UpSpeed = 1000;
 	self.AccelSpeed = 10;
 	self.CanBack = true;
 	self.CanRoll = true;
 	self.Cooldown = 2;
 	self.CanShoot = true;
+	self.DontOverheat = true;
 	self.Bullet = HALOCreateBulletStructure(70,"plasma");
 	self.FireGroup = {"Left","Right",};
 	self.AlternateFire = true;
 	self.FireDelay = 0.2;
-	self.DontOverheat = true;
 	self.ExitModifier = {x = 100, y = -80, z = 115};
     self.Hover = true;
 
@@ -116,14 +116,6 @@ if CLIENT then
 		Engine=Sound("vehicles/banshee_fly.wav"),
 	}
 	
-	hook.Add("ScoreboardShow","Banshee2ScoreDisable", function()
-		local p = LocalPlayer();	
-		local Flying = p:GetNWBool("Banshee2");
-		if(Flying) then
-			return false;
-		end
-	end)
-	
 	function ENT:Initialize()
 		self.Emitter = ParticleEmitter(self:GetPos());
 		self.BaseClass.Initialize(self);
@@ -133,14 +125,14 @@ if CLIENT then
 	function CalcView()
 		
 		local p = LocalPlayer();
-		local self = p:GetNetworkedEntity("Banshee2", NULL)
+		local self = p:GetNetworkedEntity("HALOV_Banshee", NULL)
 		if(IsValid(self)) then
 			local fpvPos = self:GetPos()+self:GetUp()*67.5+self:GetForward()*-31;
 			View = HALOVehicleView(self,575,175,fpvPos,true);		
 			return View;
 		end
 	end
-	hook.Add("CalcView", "Banshee2View", CalcView)
+	hook.Add("CalcView", "HALOV_BansheeView", CalcView)
 	
 	function ENT:Effects()
 	
@@ -150,7 +142,7 @@ if CLIENT then
 		local normal = (self.Entity:GetRight() * -1):GetNormalized();
 		local FWD = self:GetRight();
 		local id = self:EntIndex();
-		for k,v in pairs(self.SpaceBansheeEnginePos) do
+		for k,v in pairs(self.HALOV_BansheeEnginePos) do
 
 			local heatwv = self.Emitter:Add("sprites/heatwave",v+FWD*25);
 			heatwv:SetVelocity(normal*2);
@@ -164,7 +156,7 @@ if CLIENT then
 			
 			local blue = self.FXEmitter:Add("sprites/bluecore",v+FWD*25)
 			blue:SetVelocity(normal)
-			blue:SetDieTime(0.05)
+			blue:SetDieTime(0.07)
 			blue:SetStartAlpha(95)
 			blue:SetEndAlpha(20)
 			blue:SetStartSize(10)
@@ -182,7 +174,7 @@ if CLIENT then
 		local p = LocalPlayer();
 		local Flying = self:GetNWBool("Flying".. self.Vehicle);
 		if(Flying) then
-			self.SpaceBansheeEnginePos = {
+			self.HALOV_BansheeEnginePos = {
 				self:GetPos()+self:GetRight()*-47+self:GetUp()*47+self:GetForward()*-120,
 				self:GetPos()+self:GetRight()*-3+self:GetUp()*47+self:GetForward()*-120,
 			}
@@ -191,11 +183,11 @@ if CLIENT then
 		self.BaseClass.Think(self)
 	end
 	
-	function Banshee2Reticle()
+	function HALOV_BansheeReticle()
 		
 		local p = LocalPlayer();
-		local Flying = p:GetNWBool("FlyingBanshee2");
-		local self = p:GetNWEntity("Banshee2");
+		local Flying = p:GetNWBool("FlyingHALOV_Banshee");
+		local self = p:GetNWEntity("HALOV_Banshee");
 		if(Flying and IsValid(self)) then
 			HALO_HUD_DrawHull(1000);
 			HALO_CovenantReticles(self);
@@ -204,6 +196,6 @@ if CLIENT then
 			HALO_HUD_DrawSpeedometer();
 		end
 	end
-	hook.Add("HUDPaint", "Banshee2Reticle", Banshee2Reticle)
-
+	hook.Add("HUDPaint", "HALOV_BansheeReticle", HALOV_BansheeReticle)
+	
 end

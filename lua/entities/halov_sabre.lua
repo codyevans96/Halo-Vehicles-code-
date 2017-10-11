@@ -2,29 +2,30 @@ ENT.RenderGroup = RENDERGROUP_OPAQUE
 ENT.Base = "haloveh_base"
 ENT.Type = "vehicle"
 
-ENT.PrintName = "T-31 Seraph"
+ENT.PrintName = "YSS-1000 Sabre"
 ENT.Author = "Cody Evans"
 --- BASE AUTHOR: Liam0102 ---
-ENT.Category = "Halo Vehicles: Covenant"
+ENT.Category = "Halo Vehicles: UNSC"
 ENT.AutomaticFrameAdvance = true
 ENT.Spawnable = false;
 ENT.AdminSpawnable = false;
 
-ENT.EntModel = "models/helios/seraph/seraph.mdl"
-ENT.Vehicle = "seraph"
+ENT.EntModel = "models/helios/sabre/sabre.mdl"
+ENT.FlyModel = "models/helios/sabre_nogear/sabre_nogear.mdl"
+ENT.Vehicle = "halov_sabre"
 ENT.StartHealth = 2000;
-ENT.Allegiance = "Covenant";
+ENT.Allegiance = "UNSC";
 
 list.Set("HaloVehicles", ENT.PrintName, ENT);
 
 if SERVER then
 
-ENT.FireSound = Sound("weapons/ghost_shoot.wav");
+ENT.FireSound = Sound("weapons/lightbolt.wav");
 ENT.NextUse = {Wings = CurTime(),Use = CurTime(),Fire = CurTime(),};
 
 AddCSLuaFile();
 function ENT:SpawnFunction(pl, tr)
-	local e = ents.Create("seraph");
+	local e = ents.Create("halov_sabre");
 	e:SetPos(tr.HitPos + Vector(0,0,0));
 	e:SetAngles(Angle(0,pl:GetAimVector():Angle().Yaw,0));
 	e:Spawn();
@@ -37,10 +38,8 @@ function ENT:Initialize()
 	self:SetNWInt("Health",self.StartHealth);
 	
 	self.WeaponLocations = {
-		BottomRight = self:GetPos()+self:GetUp()*40+self:GetRight()*100+self:GetForward()*275,
-		TopRight = self:GetPos()+self:GetUp()*90+self:GetRight()*100+self:GetForward()*275,
-		BottomLeft = self:GetPos()+self:GetUp()*40+self:GetRight()*-100+self:GetForward()*275,
-		TopLeft = self:GetPos()+self:GetUp()*90+self:GetRight()*-100+self:GetForward()*275,
+		Right = self:GetPos()+self:GetUp()*115+self:GetRight()*57+self:GetForward()*125,
+		Left = self:GetPos()+self:GetUp()*115+self:GetRight()*-57+self:GetForward()*125,
 	}
 	self.WeaponsTable = {};
 	self.BoostSpeed = 2800;
@@ -52,25 +51,26 @@ function ENT:Initialize()
 	self.Hover = true;
 	self.Cooldown = 2;
 	self.CanShoot = true;
-	self.Bullet = HALOCreateBulletStructure(50,"plasma");
+	self.Bullet = HALOCreateBulletStructure(100,"unsc");
 	self.FireDelay = 0.1;
 	self.NextBlast = 1;
 	self.AlternateFire = true;
 	self.DontOverheat = true;
-	self.FireGroup = {"BottomLeft","TopLeft","BottomRight","TopRight"};
-	self.ExitModifier = {x = 0, y = 350, z = 50};
-    self.CanEject = false;
-
+	self.FireGroup = {"Left","Right"};
+	self.ExitModifier = {x = 0, y = 400, z = 50};
+	
 	self.BaseClass.Initialize(self);
 	
 end
     
 function ENT:Enter(p)
 	self.BaseClass.Enter(self,p);
+	self:SetModel(self.FlyModel);
 end
 
 function ENT:Exit(kill)
 	self.BaseClass.Exit(self,kill);
+	self:SetModel(self.EntModel);
 end
     
 function ENT:Think()
@@ -80,12 +80,12 @@ function ENT:Think()
             if(IsValid(self.Pilot)) then 
                 if(self.Pilot:KeyDown(IN_ATTACK2) and self.NextUse.FireBlast < CurTime()) then
                     self.BlastPositions = {
-                        self:GetPos() + self:GetForward() * 275 + self:GetRight() * 100 + self:GetUp() * 90, //1
-						self:GetPos() + self:GetForward() * 275 + self:GetRight() * -100 + self:GetUp() * 40, //1
-						self:GetPos() + self:GetForward() * 275 + self:GetRight() * 100 + self:GetUp() * 40, //2
-						self:GetPos() + self:GetForward() * 275 + self:GetRight() * -100 + self:GetUp() * 90, //2
+                        self:GetPos() + self:GetForward() * 35 + self:GetRight() * 90 + self:GetUp() * 90, //1
+						self:GetPos() + self:GetForward() * 35 + self:GetRight() * -90 + self:GetUp() * 90, //1
+						self:GetPos() + self:GetForward() * 35 + self:GetRight() * 90 + self:GetUp() * 90, //2
+						self:GetPos() + self:GetForward() * 35 + self:GetRight() * -90 + self:GetUp() * 90, //2
                     }
-                    self:FireSeraphBlast(self.BlastPositions[self.NextBlast], false, 300, 300, true, 8, Sound("weapons/banshee_bomb.wav"));
+                    self:FireHALOV_SabreBlast(self.BlastPositions[self.NextBlast], false, 300, 300, true, 8, Sound("weapons/hornet_missle.wav"));
 					self.NextBlast = self.NextBlast + 1;
 					if(self.NextBlast == 5) then
 						self.NextUse.FireBlast = CurTime()+10;
@@ -108,24 +108,21 @@ function ENT:Think()
     self.BaseClass.Think(self);
 end
 
-function ENT:FireSeraphBlast(pos,gravity,vel,dmg,white,size,snd)
-	if(self.NextUse.FireBlast < CurTime()) then
-		local e = ents.Create("plasma_blast");
-		
-		e.Damage = dmg or 600;
-		e.IsWhite = white or false;
-		e.StartSize = size or 20;
-		e.EndSize = e.StartSize*2 or 15;
-		
-		
-		local sound = snd or Sound("weapons/banshee_bomb.wav");
-		
-		e:SetPos(pos);
-		e:Spawn();
-		e:Activate();
-		e:Prepare(self,sound,gravity,vel);
-		e:SetColor(Color(20,205,0,1));
-	end
+function ENT:FireHALOV_SabreBlast(pos,gravity,vel,dmg,white,size,snd)
+	local e = ents.Create("sabre_blast");
+	
+	e.Damage = dmg or 600;
+	e.IsWhite = white or false;
+	e.StartSize = size or 30;
+	e.EndSize = size*3 or 25;
+	
+	local sound = snd or Sound("weapons/hornet_missle.wav");
+	
+	e:SetPos(pos);
+	e:Spawn();
+	e:Activate();
+	e:Prepare(self,sound,gravity,vel);
+	e:SetColor(Color(255,255,255,1));
 	
 end
 
@@ -135,16 +132,8 @@ if CLIENT then
 	
 	ENT.CanFPV = false;
 	ENT.Sounds={
-		Engine=Sound("vehicles/covenant_fly2.wav"),
+		Engine=Sound("vehicles/pelican_fly.wav"),
 	}
-	
-	hook.Add("ScoreboardShow","SeraphScoreDisable", function()
-		local p = LocalPlayer();	
-		local Flying = p:GetNWBool("Seraph");
-		if(Flying) then
-			return false;
-		end
-	end)
 	
 	function ENT:Initialize()
 		self.Emitter = ParticleEmitter(self:GetPos());
@@ -155,14 +144,14 @@ if CLIENT then
 	function CalcView()
 		
 		local p = LocalPlayer();
-		local self = p:GetNetworkedEntity("Seraph", NULL)
+		local self = p:GetNetworkedEntity("HALOV_Sabre", NULL)
 		if(IsValid(self)) then
 			local fpvPos = self:GetPos()+self:GetUp()*130+self:GetForward()*-150;
 			View = HALOVehicleView(self,975,285,fpvPos,true);		
 			return View;
 		end
 	end
-	hook.Add("CalcView", "SeraphView", CalcView)
+	hook.Add("CalcView", "HALOV_SabreView", CalcView)
 	
 	function ENT:Effects()
 	
@@ -172,27 +161,17 @@ if CLIENT then
 		local normal = (self.Entity:GetRight() * -1):GetNormalized();
 		local FWD = self:GetRight();
 		local id = self:EntIndex();
-		for k,v in pairs(self.SeraphEnginePos) do
+		for k,v in pairs(self.HALOV_SabreEnginePos) do
 			
-			local blue = self.FXEmitter:Add("sprites/bluecore",v+FWD*25)
+			local blue = self.FXEmitter:Add("sprites/orangecore1",v+FWD*25)
 			blue:SetVelocity(normal)
-			blue:SetDieTime(0.16)
-			blue:SetStartAlpha(35)
-			blue:SetEndAlpha(10)
-			blue:SetStartSize(45)
-			blue:SetEndSize(10)
+			blue:SetDieTime(0.05)
+			blue:SetStartAlpha(80)
+			blue:SetEndAlpha(5)
+			blue:SetStartSize(35)
+			blue:SetEndSize(1)
 			blue:SetRoll(roll)
 			blue:SetColor(255,255,255)
-			
-			local heatwv = self.Emitter:Add("sprites/heatwave",v+FWD*25);
-			heatwv:SetVelocity(normal*2);
-			heatwv:SetDieTime(0.05);
-			heatwv:SetStartAlpha(255);
-			heatwv:SetEndAlpha(255);
-			heatwv:SetStartSize(55);
-			heatwv:SetEndSize(50);
-			heatwv:SetColor(255,255,255);
-			heatwv:SetRoll(roll);
 
 		end
 	end
@@ -204,27 +183,30 @@ if CLIENT then
 		local p = LocalPlayer();
 		local Flying = self:GetNWBool("Flying".. self.Vehicle);
 		if(Flying) then
-			self.SeraphEnginePos = {
-				self:GetPos()+self:GetRight()*-25+self:GetUp()*80+self:GetForward()*-310,
+			self.HALOV_SabreEnginePos = {
+				self:GetPos()+self:GetRight()*-107+self:GetUp()*87+self:GetForward()*-425,
+				self:GetPos()+self:GetRight()*60+self:GetUp()*87+self:GetForward()*-425,
+				self:GetPos()+self:GetRight()*-263+self:GetUp()*79+self:GetForward()*-335,
+				self:GetPos()+self:GetRight()*218+self:GetUp()*79+self:GetForward()*-335,
 			}
 			self:Effects();
 		end
 		self.BaseClass.Think(self)
 	end
 	
-	function SeraphReticle()
+	function HALOV_SabreReticle()
 		
 		local p = LocalPlayer();
-		local Flying = p:GetNWBool("FlyingSeraph");
-		local self = p:GetNWEntity("Seraph");
+		local Flying = p:GetNWBool("FlyingHALOV_Sabre");
+		local self = p:GetNWEntity("HALOV_Sabre");
 		if(Flying and IsValid(self)) then
 			HALO_HUD_DrawHull(2000);
-			HALO_CovenantReticles(self);
-			HALO_BlastIcon(self,10);
-			HALO_HUD_Compass(self,x,y); // Draw the compass/radar
+			HALO_UNSCReticles(self);
+			HALO_BlastIcon(self,10);			
+			HALO_HUD_Compass(self,x,y);
 			HALO_HUD_DrawSpeedometer();
 		end
 	end
-	hook.Add("HUDPaint", "SeraphReticle", SeraphReticle)
+	hook.Add("HUDPaint", "HALOV_SabreReticle", HALOV_SabreReticle)
 
 end

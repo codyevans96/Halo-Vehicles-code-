@@ -10,7 +10,7 @@ ENT.AutomaticFrameAdvance = true
 ENT.Spawnable = false;
 ENT.AdminSpawnable = false;
 
-ENT.Vehicle = "shadow";
+ENT.Vehicle = "halov_shadow";
 ENT.EntModel = "models/helios/shadow/shadow.mdl";
 ENT.StartHealth = 2000;
 
@@ -19,12 +19,12 @@ list.Set("HaloVehicles", ENT.PrintName, ENT);
 if SERVER then
 
 ENT.NextUse = {Use = CurTime(),Fire = CurTime()};
-ENT.FireSound = Sound("weapons/xwing_shoot.wav");
+ENT.FireSound = Sound("weapons/plasma_shoot.wav");
 
 
 AddCSLuaFile();
 function ENT:SpawnFunction(pl, tr)
-	local e = ents.Create("shadow");
+	local e = ents.Create("halov_shadow");
 	e:SetPos(tr.HitPos + Vector(0,0,10));
 	e:SetAngles(Angle(0,pl:GetAimVector():Angle().Yaw+180,0));
 	e:Spawn();
@@ -84,28 +84,28 @@ function ENT:SpawnSeats()
 		e:SetUseType(USE_OFF);
 		e:GetPhysicsObject():EnableMotion(false);
 		e:GetPhysicsObject():EnableCollisions(false);
-		e.IsShadowSeat = true;
-		e.Shadow = self;
+		e.IsHALOV_ShadowSeat = true;
+		e.HALOV_Shadow = self;
 
 		self.Seats[k] = e;
 	end
 
 end
 
-hook.Add("PlayerEnteredVehicle","ShadowSeatEnter", function(p,v)
+hook.Add("PlayerEnteredVehicle","HALOV_ShadowSeatEnter", function(p,v)
 	if(IsValid(v) and IsValid(p)) then
-		if(v.IsShadowSeat) then
-			p:SetNetworkedEntity("Shadow",v:GetParent());
+		if(v.IsHALOV_ShadowSeat) then
+			p:SetNetworkedEntity("HALOV_Shadow",v:GetParent());
 		end
 	end
 end);
 
-hook.Add("PlayerLeaveVehicle", "ShadowSeatExit", function(p,v)
+hook.Add("PlayerLeaveVehicle", "HALOV_ShadowSeatExit", function(p,v)
 	if(IsValid(p) and IsValid(v)) then
-		if(v.IsShadowSeat) then
-			local e = v.Shadow;
+		if(v.IsHALOV_ShadowSeat) then
+			local e = v.HALOV_Shadow;
 			p:SetPos(v:GetPos()+v:GetForward()*50+v:GetUp()*5+v:GetRight()*0);
-			p:SetNetworkedEntity("Shadow",NULL);
+			p:SetNetworkedEntity("HALOV_Shadow",NULL);
 		end
 	end
 end);
@@ -282,7 +282,7 @@ if CLIENT then
 	function CalcView()
 		
 		local p = LocalPlayer();
-		local self = p:GetNWEntity("Shadow", NULL)
+		local self = p:GetNWEntity("HALOV_Shadow", NULL)
 		local DriverSeat = p:GetNWEntity("DriverSeat",NULL);
 		local PassengerSeat = p:GetNWEntity("PassengerSeat",NULL);
 
@@ -301,11 +301,11 @@ if CLIENT then
 			
 		end
 	end
-	hook.Add("CalcView", "ShadowView", CalcView)
+	hook.Add("CalcView", "HALOV_ShadowView", CalcView)
 
 	
-	hook.Add( "ShouldDrawLocalPlayer", "ShadowDrawPlayerModel", function( p )
-		local self = p:GetNWEntity("Shadow", NULL);
+	hook.Add( "ShouldDrawLocalPlayer", "HALOV_ShadowDrawPlayerModel", function( p )
+		local self = p:GetNWEntity("HALOV_Shadow", NULL);
 		local DriverSeat = p:GetNWEntity("DriverSeat",NULL);
 		local PassengerSeat = p:GetNWEntity("PassengerSeat",NULL);
 		if(IsValid(self)) then
@@ -321,11 +321,11 @@ if CLIENT then
 		end
 	end);
 	
-	function ShadowReticle()
+	function HALOV_ShadowReticle()
 	
 		local p = LocalPlayer();
-		local Flying = p:GetNWBool("FlyingShadow");
-		local self = p:GetNWEntity("Shadow");
+		local Flying = p:GetNWBool("FlyingHALOV_Shadow");
+		local self = p:GetNWEntity("HALOV_Shadow");
 		if(Flying and IsValid(self)) then
 surface.SetDrawColor( color_white )	
 			local TurretPos = Turret:GetPos()+Turret:GetForward()*-40;
@@ -376,7 +376,7 @@ surface.SetDrawColor( color_white )
 	
 		end
 	end
-	hook.Add("HUDPaint", "ShadowReticle", ShadowReticle)
+	hook.Add("HUDPaint", "HALOV_ShadowReticle", HALOV_ShadowReticle)
 	
 	
 end

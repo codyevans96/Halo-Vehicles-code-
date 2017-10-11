@@ -2,7 +2,7 @@ ENT.RenderGroup = RENDERGROUP_OPAQUE
 ENT.Base = "haloveh_base"
 ENT.Type = "vehicle"
 
-ENT.PrintName = "YSS-1000 Sabre"
+ENT.PrintName = "F-41 Broadsword"
 ENT.Author = "Cody Evans"
 --- BASE AUTHOR: Liam0102 ---
 ENT.Category = "Halo Vehicles: UNSC"
@@ -10,23 +10,22 @@ ENT.AutomaticFrameAdvance = true
 ENT.Spawnable = false;
 ENT.AdminSpawnable = false;
 
-ENT.EntModel = "models/helios/sabre/sabre.mdl"
-ENT.FlyModel = "models/helios/sabre_nogear/sabre_nogear.mdl"
-ENT.Vehicle = "sabre"
-ENT.StartHealth = 2000;
+ENT.EntModel = "models/helios/broadsword.mdl"
+ENT.Vehicle = "halov_broadsword"
+ENT.StartHealth = 3000;
 ENT.Allegiance = "UNSC";
 
 list.Set("HaloVehicles", ENT.PrintName, ENT);
 
 if SERVER then
 
-ENT.FireSound = Sound("weapons/heavy_shoot.wav");
+ENT.FireSound = Sound("weapons/heavybolt.wav");
 ENT.NextUse = {Wings = CurTime(),Use = CurTime(),Fire = CurTime(),};
 
 AddCSLuaFile();
 function ENT:SpawnFunction(pl, tr)
-	local e = ents.Create("sabre");
-	e:SetPos(tr.HitPos + Vector(0,0,0));
+	local e = ents.Create("halov_broadsword");
+	e:SetPos(tr.HitPos + Vector(0,0,250));
 	e:SetAngles(Angle(0,pl:GetAimVector():Angle().Yaw,0));
 	e:Spawn();
 	e:Activate();
@@ -38,26 +37,30 @@ function ENT:Initialize()
 	self:SetNWInt("Health",self.StartHealth);
 	
 	self.WeaponLocations = {
-		Right = self:GetPos()+self:GetUp()*115+self:GetRight()*57+self:GetForward()*125,
-		Left = self:GetPos()+self:GetUp()*115+self:GetRight()*-57+self:GetForward()*125,
+		Right = self:GetPos()+self:GetUp()*-170+self:GetRight()*53+self:GetForward()*185,
+		Left = self:GetPos()+self:GetUp()*-170+self:GetRight()*-53+self:GetForward()*185,
 	}
 	self.WeaponsTable = {};
-	self.BoostSpeed = 2800;
-	self.ForwardSpeed = 2800;
-	self.UpSpeed = 1000;
+	self.BoostSpeed = 2600;
+	self.ForwardSpeed = 2600;
+	self.UpSpeed = 1600;
 	self.AccelSpeed = 10;
-	self.CanBack = true;
-	self.CanRoll = true;
+	self.CanBack = false;
+	self.CanStrafe = true;
 	self.Hover = true;
 	self.Cooldown = 2;
 	self.CanShoot = true;
-	self.Bullet = HALOCreateBulletStructure(100,"unsc");
+	self.Bullet = HALOCreateBulletStructure(120,"unsc");
 	self.FireDelay = 0.1;
 	self.NextBlast = 1;
 	self.AlternateFire = true;
 	self.DontOverheat = true;
 	self.FireGroup = {"Left","Right"};
-	self.ExitModifier = {x = 0, y = 400, z = 50};
+	self.ExitModifier = {x = 0, y = 350, z = -100};
+	
+	self.PilotVisible = true;
+	self.PilotPosition = {x=0,y=170,z=-125};
+	self.PilotAnim = "drive_jeep";
 	
 	self.BaseClass.Initialize(self);
 	
@@ -65,14 +68,12 @@ end
     
 function ENT:Enter(p)
 	self.BaseClass.Enter(self,p);
-	self:SetModel(self.FlyModel);
 end
 
 function ENT:Exit(kill)
 	self.BaseClass.Exit(self,kill);
-	self:SetModel(self.EntModel);
 end
-    
+
 function ENT:Think()
  
     if(self.Inflight) then
@@ -80,15 +81,13 @@ function ENT:Think()
             if(IsValid(self.Pilot)) then 
                 if(self.Pilot:KeyDown(IN_ATTACK2) and self.NextUse.FireBlast < CurTime()) then
                     self.BlastPositions = {
-                        self:GetPos() + self:GetForward() * 35 + self:GetRight() * 90 + self:GetUp() * 90, //1
-						self:GetPos() + self:GetForward() * 35 + self:GetRight() * -90 + self:GetUp() * 90, //1
-						self:GetPos() + self:GetForward() * 35 + self:GetRight() * 90 + self:GetUp() * 90, //2
-						self:GetPos() + self:GetForward() * 35 + self:GetRight() * -90 + self:GetUp() * 90, //2
+                        self:GetPos() + self:GetForward() * 155 + self:GetRight() * 160 + self:GetUp() * -100, //1
+						self:GetPos() + self:GetForward() * 155 + self:GetRight() * -160 + self:GetUp() * -100, //1
                     }
-                    self:FireSabreBlast(self.BlastPositions[self.NextBlast], false, 300, 300, true, 8, Sound("weapons/hornet_missle.wav"));
+                    self:FireHALOV_BroadswordBlast(self.BlastPositions[self.NextBlast], false, 300, 300, true, 8, Sound("weapons/rocket.wav"));
 					self.NextBlast = self.NextBlast + 1;
-					if(self.NextBlast == 5) then
-						self.NextUse.FireBlast = CurTime()+10;
+					if(self.NextBlast == 3) then
+						self.NextUse.FireBlast = CurTime()+5;
 						self:SetNWBool("OutOfMissiles",true);
 						self:SetNWInt("FireBlast",self.NextUse.FireBlast)
 						self.NextBlast = 1;
@@ -108,15 +107,15 @@ function ENT:Think()
     self.BaseClass.Think(self);
 end
 
-function ENT:FireSabreBlast(pos,gravity,vel,dmg,white,size,snd)
-	local e = ents.Create("sabre_blast");
+function ENT:FireHALOV_BroadswordBlast(pos,gravity,vel,dmg,white,size,snd)
+	local e = ents.Create("missle_blast");
 	
 	e.Damage = dmg or 600;
 	e.IsWhite = white or false;
-	e.StartSize = size or 30;
-	e.EndSize = size*3 or 25;
+	e.StartSize = size or 20;
+	e.EndSize = size*3 or 15;
 	
-	local sound = snd or Sound("weapons/hornet_missle.wav");
+	local sound = snd or Sound("weapons/rocket.wav");
 	
 	e:SetPos(pos);
 	e:Spawn();
@@ -130,18 +129,10 @@ end
 
 if CLIENT then
 	
-	ENT.CanFPV = false;
+	ENT.CanFPV = true;
 	ENT.Sounds={
 		Engine=Sound("vehicles/pelican_fly.wav"),
 	}
-	
-	hook.Add("ScoreboardShow","SabreScoreDisable", function()
-		local p = LocalPlayer();	
-		local Flying = p:GetNWBool("Sabre");
-		if(Flying) then
-			return false;
-		end
-	end)
 	
 	function ENT:Initialize()
 		self.Emitter = ParticleEmitter(self:GetPos());
@@ -152,14 +143,14 @@ if CLIENT then
 	function CalcView()
 		
 		local p = LocalPlayer();
-		local self = p:GetNetworkedEntity("Sabre", NULL)
+		local self = p:GetNetworkedEntity("HALOV_Broadsword", NULL)
 		if(IsValid(self)) then
-			local fpvPos = self:GetPos()+self:GetUp()*130+self:GetForward()*-150;
-			View = HALOVehicleView(self,975,285,fpvPos,true);		
+			local fpvPos = self:GetPos()+self:GetUp()*-80+self:GetForward()*175;
+			View = HALOVehicleView(self,955,85,fpvPos,true);		
 			return View;
 		end
 	end
-	hook.Add("CalcView", "SabreView", CalcView)
+	hook.Add("CalcView", "HALOV_BroadswordView", CalcView)
 	
 	function ENT:Effects()
 	
@@ -169,15 +160,28 @@ if CLIENT then
 		local normal = (self.Entity:GetRight() * -1):GetNormalized();
 		local FWD = self:GetRight();
 		local id = self:EntIndex();
-		for k,v in pairs(self.SabreEnginePos) do
+		for k,v in pairs(self.HALOV_BroadswordBigEnginePos) do
 			
-			local blue = self.FXEmitter:Add("sprites/orangecore1",v+FWD*25)
+			local blue = self.FXEmitter:Add("sprites/bluecore",v+FWD*25)
 			blue:SetVelocity(normal)
-			blue:SetDieTime(0.05)
-			blue:SetStartAlpha(80)
-			blue:SetEndAlpha(5)
-			blue:SetStartSize(35)
-			blue:SetEndSize(1)
+			blue:SetDieTime(0.03)
+			blue:SetStartAlpha(90)
+			blue:SetEndAlpha(10)
+			blue:SetStartSize(40)
+			blue:SetEndSize(5)
+			blue:SetRoll(roll)
+			blue:SetColor(255,255,255)
+
+		end
+		for k,v in pairs(self.HALOV_BroadswordSmallEnginePos) do
+			
+			local blue = self.FXEmitter:Add("sprites/bluecore",v+FWD*25)
+			blue:SetVelocity(normal)
+			blue:SetDieTime(0.03)
+			blue:SetStartAlpha(90)
+			blue:SetEndAlpha(10)
+			blue:SetStartSize(20)
+			blue:SetEndSize(5)
 			blue:SetRoll(roll)
 			blue:SetColor(255,255,255)
 
@@ -191,30 +195,32 @@ if CLIENT then
 		local p = LocalPlayer();
 		local Flying = self:GetNWBool("Flying".. self.Vehicle);
 		if(Flying) then
-			self.SabreEnginePos = {
-				self:GetPos()+self:GetRight()*-107+self:GetUp()*87+self:GetForward()*-425,
-				self:GetPos()+self:GetRight()*60+self:GetUp()*87+self:GetForward()*-425,
-				self:GetPos()+self:GetRight()*-263+self:GetUp()*79+self:GetForward()*-335,
-				self:GetPos()+self:GetRight()*218+self:GetUp()*79+self:GetForward()*-335,
+			self.HALOV_BroadswordBigEnginePos = {
+				self:GetPos()+self:GetRight()*-75+self:GetUp()*-152+self:GetForward()*-335,
+				self:GetPos()+self:GetRight()*25+self:GetUp()*-152+self:GetForward()*-335,
+			}
+			self.HALOV_BroadswordSmallEnginePos = {
+				self:GetPos()+self:GetRight()*-43+self:GetUp()*-112+self:GetForward()*-290,
+				self:GetPos()+self:GetRight()*-7+self:GetUp()*-112+self:GetForward()*-290,
 			}
 			self:Effects();
 		end
 		self.BaseClass.Think(self)
 	end
 	
-	function SabreReticle()
+	function HALOV_BroadswordReticle()
 		
 		local p = LocalPlayer();
-		local Flying = p:GetNWBool("FlyingSabre");
-		local self = p:GetNWEntity("Sabre");
+		local Flying = p:GetNWBool("FlyingHALOV_Broadsword");
+		local self = p:GetNWEntity("HALOV_Broadsword");
 		if(Flying and IsValid(self)) then
-			HALO_HUD_DrawHull(2000);
+			HALO_HUD_DrawHull(3000);
 			HALO_UNSCReticles(self);
-			HALO_BlastIcon(self,10);			
+			HALO_BlastIcon(self,5);			
 			HALO_HUD_Compass(self,x,y); // Draw the compass/radar
 			HALO_HUD_DrawSpeedometer();
 		end
 	end
-	hook.Add("HUDPaint", "SabreReticle", SabreReticle)
+	hook.Add("HUDPaint", "HALOV_BroadswordReticle", HALOV_BroadswordReticle)
 
 end

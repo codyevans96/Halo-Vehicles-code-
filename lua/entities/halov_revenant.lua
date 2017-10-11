@@ -10,7 +10,7 @@ ENT.AutomaticFrameAdvance = true
 ENT.Spawnable = false;
 ENT.AdminSpawnable = false;
 
-ENT.Vehicle = "Revenant";
+ENT.Vehicle = "halov_revenant";
 ENT.EntModel = "models/helios/revenant/revenant.mdl";
 ENT.StartHealth = 1500;
 ENT.Allegiance = "Covenant";
@@ -24,7 +24,7 @@ ENT.FireSound = Sound("weapons/xwing_shoot.wav");
 
 AddCSLuaFile();
 function ENT:SpawnFunction(pl, tr)
-	local e = ents.Create("revenant");
+	local e = ents.Create("halov_revenant");
 	e:SetPos(tr.HitPos + Vector(0,0,10));
 	e:SetAngles(Angle(0,pl:GetAimVector():Angle().Yaw+180,0));
 	e:Spawn();
@@ -46,8 +46,8 @@ function ENT:Initialize()
 	self.StartHover = 25;
 	self.DontOverheat = true;
 	self.CanBack = true;
-	self.StandbyHoverAmount = 25;
-	self.HoverMod = 10;
+	self.StandbyHoverAmount = 15;
+	self.HoverMod = 40;
 	self:Rotorwash(false);
 
 end
@@ -138,7 +138,7 @@ if CLIENT then
 	function CalcView()
 		
 		local p = LocalPlayer();
-		local self = p:GetNWEntity("Revenant", NULL)
+		local self = p:GetNWEntity("HALOV_Revenant", NULL)
 		local DriverSeat = p:GetNWEntity("DriverSeat",NULL);
 		local PassengerSeat = p:GetNWEntity("PassengerSeat",NULL);
 
@@ -169,11 +169,11 @@ if CLIENT then
 			end
 		end
 	end
-	hook.Add("CalcView", "RevenantView", CalcView)
+	hook.Add("CalcView", "HALOV_RevenantView", CalcView)
 
 	
-	hook.Add( "ShouldDrawLocalPlayer", "RevenantDrawPlayerModel", function( p )
-		local self = p:GetNWEntity("Revenant", NULL);
+	hook.Add( "ShouldDrawLocalPlayer", "HALOV_RevenantDrawPlayerModel", function( p )
+		local self = p:GetNWEntity("HALOV_Revenant", NULL);
 		local DriverSeat = p:GetNWEntity("DriverSeat",NULL);
 		local PassengerSeat = p:GetNWEntity("PassengerSeat",NULL);
 		if(IsValid(self)) then
@@ -189,11 +189,11 @@ if CLIENT then
 		end
 	end);
 	
-	function RevenantReticle()
+	function HALOV_RevenantReticle()
 	
 		local p = LocalPlayer();
-		local Flying = p:GetNWBool("FlyingRevenant");
-		local self = p:GetNWEntity("Revenant");
+		local Flying = p:GetNWBool("FlyingHALOV_Revenant");
+		local self = p:GetNWEntity("HALOV_Revenant");
 		if(Flying and IsValid(self)) then
 				
 			HALO_Speeder_DrawHull(1500)
@@ -201,7 +201,7 @@ if CLIENT then
 	
 		end
 	end
-	hook.Add("HUDPaint", "RevenantReticle", RevenantReticle)
+	hook.Add("HUDPaint", "HALOV_RevenantReticle", HALOV_RevenantReticle)
 	
 	
 end

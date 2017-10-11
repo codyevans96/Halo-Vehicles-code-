@@ -12,7 +12,7 @@ ENT.AdminSpawnable = false;
 
 ENT.EntModel = "models/helios/falcon/falcon_idle.mdl"
 ENT.FlyModel = "models/helios/falcon/falcon_fly.mdl"
-ENT.Vehicle = "halofalcon"
+ENT.Vehicle = "halov_falcon"
 ENT.StartHealth = 3000;
 ENT.Allegiance = "UNSC";
 
@@ -20,12 +20,12 @@ list.Set("HaloVehicles", ENT.PrintName, ENT);
 
 if SERVER then
 
-ENT.FireSound = Sound("weapons/heavy_shoot.wav");
+ENT.FireSound = Sound("weapons/lightbolt.wav");
 ENT.NextUse = {Wings = CurTime(),Use = CurTime(),Fire = CurTime(),};
 
 AddCSLuaFile();
 function ENT:SpawnFunction(pl, tr)
-	local e = ents.Create("halofalcon");
+	local e = ents.Create("halov_falcon");
 	e:SetPos(tr.HitPos + Vector(0,0,0));
 	e:SetAngles(Angle(0,pl:GetAimVector():Angle().Yaw,0));
 	e:Spawn();
@@ -90,18 +90,18 @@ function ENT:SpawnSeats()
 		e:SetUseType(USE_OFF);
 		e:GetPhysicsObject():EnableMotion(false);
 		e:GetPhysicsObject():EnableCollisions(false);
-		e.IsHalofalconSeat = true;
-		e.Halofalcon = self;
+		e.IsHALOV_FalconSeat = true;
+		e.HALOV_Falcon = self;
 		if(k == "Back") then
-            e.HalofalconBackSeat = true;
+            e.HALOV_FalconBackSeat = true;
 		elseif(k == "BackR") then
-            e.HalofalconBackRSeat = true;
+            e.HALOV_FalconBackRSeat = true;
 		elseif(k == "BackL") then
-            e.HalofalconBackLSeat = true;
+            e.HALOV_FalconBackLSeat = true;
 		elseif(k == "SideR") then
-            e.HalofalconSideRSeat = true;
+            e.HALOV_FalconSideRSeat = true;
         elseif(k == "SideL") then
-		    e.HalofalconSideLSeat = true;
+		    e.HALOV_FalconSideLSeat = true;
 		end
 		self.Seats[k] = e;
 	end
@@ -156,27 +156,27 @@ function ENT:Use(p)
 	end
 end
 
-hook.Add("PlayerLeaveVehicle", "HalofalconSeatExit", function(p,v)
+hook.Add("PlayerLeaveVehicle", "HALOV_FalconSeatExit", function(p,v)
 	if(IsValid(p) and IsValid(v)) then
-		if(v.IsHalofalconSeat) then
-			if(v.HalofalconBackLSeat) then
+		if(v.IsHALOV_FalconSeat) then
+			if(v.HALOV_FalconBackLSeat) then
                 local self = v:GetParent();
                 p:SetPos(self:GetPos()+self:GetForward()*40+self:GetUp()*20+self:GetRight()*-90);
-			elseif(v.HalofalconBackRSeat) then
+			elseif(v.HALOV_FalconBackRSeat) then
                 local self = v:GetParent();
                 p:SetPos(self:GetPos()+self:GetForward()*40+self:GetUp()*20+self:GetRight()*90);
-			elseif(v.HalofalconBackSeat) then
+			elseif(v.HALOV_FalconBackSeat) then
                 local self = v:GetParent();
                 p:SetPos(self:GetPos()+self:GetForward()*-90+self:GetUp()*20+self:GetRight()*-110);
-			elseif(v.HalofalconSideLSeat) then
+			elseif(v.HALOV_FalconSideLSeat) then
                 local self = v:GetParent();
                 p:SetPos(self:GetPos()+self:GetForward()*-40+self:GetUp()*30+self:GetRight()*-90);
-            elseif(v.HalofalconSideRSeat) then
+            elseif(v.HALOV_FalconSideRSeat) then
 			    local self = v:GetParent();
 				p:SetPos(self:GetPos()+self:GetForward()*-40+self:GetUp()*30+self:GetRight()*90);
 			end
-			p:SetNetworkedEntity("Halofalcon",NULL);
-            p:SetNetworkedEntity("HalofalconSeat",NULL);
+			p:SetNetworkedEntity("HALOV_Falcon",NULL);
+            p:SetNetworkedEntity("HALOV_FalconSeat",NULL);
 		end
 	end
 end);
@@ -190,14 +190,6 @@ if CLIENT then
 		Engine=Sound("vehicles/falcon_fly.wav"),
 	}
 	
-	hook.Add("ScoreboardShow","HalofalconScoreDisable", function()
-		local p = LocalPlayer();	
-		local Flying = p:GetNWBool("Halofalcon");
-		if(Flying) then
-			return false;
-		end
-	end)
-	
 	function ENT:Initialize()
 		self.Emitter = ParticleEmitter(self:GetPos());
 		self.BaseClass.Initialize(self);
@@ -207,14 +199,14 @@ if CLIENT then
 	function CalcView()
 		
 		local p = LocalPlayer();
-		local self = p:GetNetworkedEntity("Halofalcon", NULL)
+		local self = p:GetNetworkedEntity("HALOV_Falcon", NULL)
 		if(IsValid(self)) then
 			local fpvPos = self:GetPos()+self:GetUp()*74+self:GetForward()*97;
 			View = HALOVehicleView(self,635,185,fpvPos,true);		
 			return View;
 		end
 	end
-	hook.Add("CalcView", "HalofalconView", CalcView)
+	hook.Add("CalcView", "HALOV_FalconView", CalcView)
 	
 	function ENT:Effects()
 	
@@ -265,11 +257,11 @@ if CLIENT then
 		self.BaseClass.Think(self)
 	end
 	
-	function HalofalconReticle()
+	function HALOV_FalconReticle()
 		
 		local p = LocalPlayer();
-		local Flying = p:GetNWBool("FlyingHalofalcon");
-		local self = p:GetNWEntity("Halofalcon");
+		local Flying = p:GetNWBool("FlyingHALOV_Falcon");
+		local self = p:GetNWEntity("HALOV_Falcon");
 		if(Flying and IsValid(self)) then
 			HALO_HUD_DrawHull(3000);
 			HALO_UNSCReticles(self);
@@ -277,6 +269,6 @@ if CLIENT then
 			HALO_HUD_DrawSpeedometer();
 		end
 	end
-	hook.Add("HUDPaint", "HalofalconReticle", HalofalconReticle)
+	hook.Add("HUDPaint", "HALOV_FalconReticle", HALOV_FalconReticle)
 
 end
