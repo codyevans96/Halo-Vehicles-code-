@@ -12,7 +12,7 @@ local V = {
 
 	Author = "Syphadias",
 	Information = "Seat by Syphadias with custom animation",
-	Offset = 5,
+	Offset = 16,
 
 	KeyValues = {
 		vehiclescript = "scripts/vehicles/prisoner_pod.txt",

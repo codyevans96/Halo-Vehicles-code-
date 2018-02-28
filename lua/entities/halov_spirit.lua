@@ -207,7 +207,7 @@ function ENT:Think()
                     self.BlastPositions = {
                         self:GetPos() + self:GetForward() * -200 + self:GetRight() * 0 + self:GetUp() * 50, //1
                     }
-                    self:FireHALOV_SpiritBlast(self.BlastPositions[self.NextBlast], false, 25, 25, true, 8, Sound("weapons/phantom_shoot.wav"));
+                    self:FireHALOV_SpiritBlast(self.BlastPositions[self.NextBlast], false, 140, 140, true, 8, Sound("weapons/phantom_shoot.wav"));
 					self.NextBlast = self.NextBlast + 1;
 					if(self.NextBlast == 2) then
 						self.NextUse.FireBlast = CurTime()+0.35;
@@ -232,7 +232,7 @@ end
 
 function ENT:FireHALOV_SpiritBlast(pos,gravity,vel,dmg,white,size,snd)
 	if(self.NextUse.FireBlast < CurTime()) then
-		local e = ents.Create("shadow_blast");
+		local e = ents.Create("shadow2_blast");
 		
 		e.Damage = dmg or 600;
 		e.IsWhite = white or false;
@@ -339,11 +339,8 @@ if CLIENT then
 	
 		
 		if(Flying) then
-			if(IsValid(self)) then
-				local fpvPos = self:GetPos()+self:GetUp()*155+self:GetForward()*210;
-				View = HALOVehicleView(self,1250,450,fpvPos,true);		
+				View = HALOVehicleView(self,1250,550,fpvPos,true);		
 				return View;
-			end
 		elseif(Sitting) then
 			local v = p:GetNWEntity("HALOV_SpiritSeat");	
 			if(IsValid(v)) then

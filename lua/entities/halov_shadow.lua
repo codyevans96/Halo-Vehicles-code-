@@ -19,7 +19,7 @@ list.Set("HaloVehicles", ENT.PrintName, ENT);
 if SERVER then
 
 ENT.NextUse = {Use = CurTime(),Fire = CurTime()};
-ENT.FireSound = Sound("weapons/plasma_shoot.wav");
+ENT.FireSound = Sound("weapons/banshee_shoot.wav");
 
 
 AddCSLuaFile();
@@ -39,8 +39,8 @@ function ENT:Initialize()
 	local driverAng = self:GetAngles()+Angle(0,90,0);
 	self:SpawnChairs(driverPos,driverAng,false);
 	
-	self.ForwardSpeed = -300;
-	self.BoostSpeed = -550
+	self.ForwardSpeed = -350;
+	self.BoostSpeed = -350
 	self.AccelSpeed = 6;
 	self.HoverMod = 0.5;
 	self.SpeederClass = 2;
@@ -161,7 +161,8 @@ function ENT:FireBlast(pos,gravity,vel,ang)
         e:Activate();
         e:Prepare(self,Sound("weapons/banshee_shoot.wav"),gravity,vel,ang);
         e:SetColor(Color(255,255,255,1));
-       
+		
+        self:EmitSound(self.FireSound, 120, math.random(120,150));
         self.NextUse.FireBlast = CurTime() + 0.35;
     end
    
@@ -177,14 +178,14 @@ function ENT:Think()
 		
 			local aim = self.Pilot:GetAimVector():Angle();
 			local p = aim.p*-1;
-			if(p <= -0 and p >= -40) then
-				p = -0;
-			elseif(p >= -300 and p <= 280) then
-				p = -300;
-			end
+			if(p <= 70 and p >= 8) then
+				p = 8;
+			elseif(p >= -150 and p <= -30) then
+				p = -30;
+		    end
 			self.Turret:SetAngles(Angle(p,aim.y+180,0));
 			if(self.Pilot:KeyDown(IN_ATTACK)) then
-				self:FireBlast(self.Turret:GetPos()+self.Turret:GetForward()*-60+self.Turret:GetUp()*40,true,-3,self.Turret:GetAngles():Forward());
+				self:FireBlast(self.Turret:GetPos()+self.Turret:GetForward()*-60+self.Turret:GetUp()*40,false,-50,self.Turret:GetAngles():Forward());
 			end
 			lastY = aim.y;
 			self:NextThink(CurTime());
@@ -201,18 +202,6 @@ function ENT:Exit(driver,kill)
 		self.Turret:SetAngles(self.Turret.LastAng);
 	end
 	
-end
-
-function ENT:Boost()
-	
-	if(self.NextUse.Boost < CurTime()) then
-		self.Accel.FWD = self.BoostSpeed;
-		self.Boosting = true;
-		self:EmitSound(Sound("vehicles/ghost_boost.wav"),85,100,1,CHAN_VOICE)
-		self.BoostTimer = CurTime()+5;
-		self.NextUse.Boost = CurTime() + 15;
-	end
-
 end
 
 local ZAxis = Vector(0,0,1);
@@ -284,21 +273,16 @@ if CLIENT then
 		local p = LocalPlayer();
 		local self = p:GetNWEntity("HALOV_Shadow", NULL)
 		local DriverSeat = p:GetNWEntity("DriverSeat",NULL);
-		local PassengerSeat = p:GetNWEntity("PassengerSeat",NULL);
 
-		if(IsValid(self) and IsValid(Turret)) then
+		if(IsValid(self)) then
 
 			if(IsValid(DriverSeat)) then
-				if(DriverSeat:GetThirdPersonMode()) then
-					--- local pos = Turret:GetPos()+Turret:GetForward()*470+Turret:GetUp()*100;
-					local pos = self:GetPos()+self:GetForward()*450+self:GetUp()*250;
-					local face = ((self:GetPos() + Vector(0,0,250))- pos):Angle();
-						View.origin = pos;
-						View.angles = face;
-					return View;
-				end
+				local pos = self:GetPos()+LocalPlayer():GetAimVector():GetNormal()*-300+self:GetUp()*250+self:GetRight()*0;
+				local face = ((self:GetPos() + Vector(0,0,200))- pos):Angle();
+					View.origin = pos;
+					View.angles = face;
+				return View;
 			end
-			
 		end
 	end
 	hook.Add("CalcView", "HALOV_ShadowView", CalcView)
@@ -328,7 +312,7 @@ if CLIENT then
 		local self = p:GetNWEntity("HALOV_Shadow");
 		if(Flying and IsValid(self)) then
 surface.SetDrawColor( color_white )	
-			local TurretPos = Turret:GetPos()+Turret:GetForward()*-40;
+			local TurretPos = Turret:GetPos()+Turret:GetUp()*30;
 			local tr = util.TraceLine({
 				start = TurretPos,
 				endpos = TurretPos + Turret:GetForward()*-10000,

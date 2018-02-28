@@ -78,20 +78,20 @@ if CLIENT then
 		local sprite;
 		local IsWhite = self:GetNWBool("White");
 		if(IsWhite) then
-			sprite = "sprites/white_blast";
+			sprite = "sprites/tfaenginered";
 		else
-			sprite = "sprites/bluecore";
+			sprite = "sprites/tfaenginered";
 		end
 
 		local blue = self.FXEmitter:Add(sprite,self:GetPos())
 		blue:SetVelocity(normal)
-		blue:SetDieTime(0.15)
+		blue:SetDieTime(0.2)
 		blue:SetStartAlpha(255)
 		blue:SetEndAlpha(255)
-		blue:SetStartSize(StartSize)
-		blue:SetEndSize(EndSize)
+		blue:SetStartSize(40)
+		blue:SetEndSize(10)
 		blue:SetRoll(roll)
-		blue:SetColor(5,140,0,1)
+		blue:SetColor(35,255,115,1)
 		
 	end
 end

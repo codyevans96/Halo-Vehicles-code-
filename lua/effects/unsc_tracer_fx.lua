@@ -102,9 +102,6 @@ function EFFECT:Render()
 	local endPos = self.StartPos + self.Normal * (endDistance*1.1);
 	
 	render.SetMaterial( MaterialFront );
-	render.DrawSprite( endPos, 52, 24, color_white );
-
-	render.SetMaterial( MaterialMain );
-	render.DrawBeam( startPos, endPos, 30, 0, 1, color_white );
+	render.DrawSprite( endPos, 18, 18, color_white );
 	
 end

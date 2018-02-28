@@ -20,7 +20,7 @@ list.Set("HaloVehicles", ENT.PrintName, ENT);
 if SERVER then
  
 ENT.NextUse = {Use = CurTime(),Fire = CurTime()};
-ENT.FireSound = Sound("weapons/banshee_shoot.wav");
+ENT.FireSound = Sound("weapons/macgun.wav");
  
  
 AddCSLuaFile();
@@ -68,6 +68,7 @@ function ENT:FireBlast(pos,gravity,vel,ang)
         e:SetColor(Color(255,255,255,1));
        
         self.NextUse.FireBlast = CurTime() + 5;
+		self:EmitSound(self.FireSound, 120, math.random(120,250));
     end
    
 end
@@ -75,53 +76,6 @@ end
 function ENT:Enter(p,driver)
     self.BaseClass.Enter(self,p,driver);
     self:Rotorwash(false);
-end
- 
-hook.Add("PlayerEnteredVehicle","HALOV_TyrantSeatEnter", function(p,v)
-    if(IsValid(v) and IsValid(p)) then
-        if(v.IsHALOV_TyrantSeat) then
-            p:SetNetworkedEntity("HALOV_Tyrant",v:GetParent());
-            p:SetNetworkedEntity("HALOV_TyrantSeat",v);
-            p:SetAllowWeaponsInVehicle( false )
-        end
-    end
-end);
- 
-hook.Add("PlayerLeaveVehicle", "HALOV_TyrantSeatExit", function(p,v)
-    if(IsValid(p) and IsValid(v)) then
-        if(v.IsHALOV_TyrantSeat) then
-            local e = v.HALOV_Tyrant;
-            if(IsValid(e)) then
-                p:SetEyeAngles(e:GetAngles()+Angle(0,0,0))
-            end
-            p:SetNetworkedEntity("HALOV_TyrantSeat",NULL);
-            p:SetNetworkedEntity("HALOV_Tyrant",NULL);
-        end
-    end
-end);
- 
-function ENT:FireWeapons()
- 
-    if(self.NextUse.Fire < CurTime()) then
-        local e = self.Cannon;
-        local WeaponPos = {
-            e:GetPos()+e:GetRight()*45+e:GetForward()*-110,
-            e:GetPos()+e:GetRight()*-45+e:GetForward()*-110,
-        }
-        for k,v in pairs(WeaponPos) do
-            local tr = util.TraceLine({
-                start = self:GetPos(),
-                endpos = self:GetPos() + self.Cannon:GetForward()*-10000,
-                filter = {self,self.Cannon},
-            })
-            self.Bullet.Src     = v:GetPos();
-            self.Bullet.Attacker = self.Pilot or self; 
-            self.Bullet.Dir = self.Pilot:GetAimVector():Angle():Forward();
- 
-            v:FireBullets(self.Bullet)
-        end
-        self:EmitSound(self.FireSound, 120, math.random(90,110));
-    end
 end
  
 function ENT:SpawnCannon(ang)
@@ -150,15 +104,17 @@ function ENT:Think()
            
             local aim = self.Pilot:GetAimVector():Angle();
             local p = aim.p*1;
-            if(p <= -0 and p >= -40) then
-                p = -0;
-            elseif(p >= -300 and p <= 280) then
-                p = 3;
-            end
+            if(p <= 70 and p >= 8) then
+				p = 8;
+			elseif(p >= -150 and p <= -30) then
+				p = -30;
+		    end
             self.Cannon:SetAngles(Angle(p,self:GetAngles().y,self:GetAngles().r));
             if(self.Pilot:KeyDown(IN_ATTACK)) then
-                self:FireBlast(self.Cannon:GetPos()+self.Cannon:GetForward()*20+self:GetUp()*60,true,100,self.Cannon:GetAngles():Forward());
-            end
+                self:FireBlast(self.Cannon:GetPos()+self.Cannon:GetForward()*20+self:GetUp()*60,false,100,self.Cannon:GetAngles():Forward());
+            elseif(self.Pilot:KeyDown(IN_ATTACK2)) then
+				self:FireBlast(self.Cannon:GetPos()+self.Cannon:GetForward()*20+self:GetUp()*60,true,100,self.Cannon:GetAngles():Forward());
+			end
         end
        
     end
@@ -229,57 +185,24 @@ if CLIENT then
     end
    
     local View = {}
-    local function CalcView()
-       
-        local p = LocalPlayer();
-        local self = p:GetNWEntity("HALOV_Tyrant", NULL)
-        local DriverSeat = p:GetNWEntity("DriverSeat",NULL);
-        local HALOV_TyrantSeat = p:GetNWEntity("HALOV_TyrantSeat",NULL);
-        local pass = p:GetNWEntity("HALOV_TyrantSeat",NULL);
-        if(IsValid(self)) then
- 
-            if(IsValid(DriverSeat)) then
-                if(DriverSeat:GetThirdPersonMode()) then
-                    local pos = self:GetPos()+self:GetForward()*-1000+self:GetUp()*900+self:GetRight()*500;
-                    local face = self:GetAngles() + Angle(0,0,0);
-                        View.origin = pos;
-                        View.angles = face;
-                    return View;
-                end
-            end
-       
- 
-            if(IsValid(pass)) then
-                if(HALOV_TyrantSeat:GetThirdPersonMode()) then
-                        View =  HALOVehicleView(self,1000,600,fpvPos);
-                    return View;
-                    else
-                    View =  HALOVehicleView(self,1000,600,fpvPos);
-                    return View;
-                end
-            end
-        end
-    end
-    hook.Add("CalcView", "HALOV_TyrantView", CalcView)
-   
-    hook.Add( "ShouldDrawLocalPlayer", "HALOV_TyrantDrawPlayerModel", function( p )
-        local self = p:GetNWEntity("HALOV_Tyrant", NULL);
-        local DriverSeat = p:GetNWEntity("DriverSeat",NULL);
-        local HALOV_TyrantSeat = p:GetNWEntity("HALOV_TyrantSeat",NULL);
-        local pass = p:GetNWEntity("HALOV_TyrantSeat",NULL);
-        if(IsValid(self)) then
-            if(IsValid(DriverSeat)) then
-                if(DriverSeat:GetThirdPersonMode()) then
-                    return false;
-                end
-            end
-            if(IsValid(pass)) then
-                if(HALOV_TyrantSeat:GetThirdPersonMode()) then
-                    return false;
-                end
-            end
-        end
-    end);
+	function CalcView()
+		
+		local p = LocalPlayer();
+		local self = p:GetNWEntity("HALOV_Tyrant", NULL)
+		local DriverSeat = p:GetNWEntity("DriverSeat",NULL);
+
+		if(IsValid(self)) then
+
+			if(IsValid(DriverSeat)) then
+				local pos = self:GetPos()+LocalPlayer():GetAimVector():GetNormal()*-1300+self:GetUp()*950+self:GetRight()*0;
+				local face = ((self:GetPos() + Vector(0,0,900))- pos):Angle();
+					View.origin = pos;
+					View.angles = face;
+				return View;
+			end
+		end
+	end
+	hook.Add("CalcView", "HALOV_TyrantView", CalcView)
    
     function HALOV_TyrantReticle()
    

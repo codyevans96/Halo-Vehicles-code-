@@ -3,7 +3,7 @@ ENT.RenderGroup = RENDERGROUP_BOTH
 ENT.Type = "anim"
 ENT.Base = "base_anim"
 
-ENT.PrintName = "Covenant Red Plasma Blast"
+ENT.PrintName = "Missle Blast"
 ENT.Author = "Liam0102"
 ENT.Category = "Halo"
 ENT.Spawnable = false;
@@ -20,13 +20,13 @@ if SERVER then
 		self:StartMotionController();
 		self:SetUseType(SIMPLE_USE);
 		self:SetRenderMode(RENDERMODE_TRANSALPHA);
-		self:SetColor(Color(5,140,0,1));
+		self:SetColor(Color(255,255,255,1));
 		
 		self:SetNWBool("White",self.IsWhite);
-		self:SetNWInt("StartSize",self.StartSize or 205);
-		self:SetNWInt("EndSize",self.EndSize or 80);
+		self:SetNWInt("StartSize",self.StartSize or 20);
+		self:SetNWInt("EndSize",self.EndSize or 15);
 		
-		self.Damage = 60;
+		self.Damage = self.Damage or 300;
 
 	end
 	
@@ -43,7 +43,7 @@ if SERVER then
 	
 	function ENT:PhysicsCollide(data, physobj)
 	
-		for i=1,math.Round(self.Damage/100) do
+		for i=1,math.Round(self.Damage/70) do
 			local pos = self:GetPos()+self:GetForward()*math.random(-self.Damage/2,self.Damage/2)+self:GetRight()*math.random(-self.Damage/2,self.Damage/2)
 			local fx = EffectData()
 				fx:SetOrigin(pos);
@@ -51,7 +51,7 @@ if SERVER then
 		end
 		for k,v in pairs(ents.FindInSphere(self:GetPos(),self.Damage)) do
 			local dist = (self:GetPos() - v:GetPos()):Length();
-			local dmg = math.Clamp((self.Damage or 600) - dist,0,(self.Damage or 600));
+			local dmg = math.Clamp((self.Damage or 400) - dist,0,(self.Damage or 400));
 			v:TakeDamage(dmg);
 		end
 		self:Remove()
@@ -85,13 +85,13 @@ if CLIENT then
 
 		local blue = self.FXEmitter:Add(sprite,self:GetPos())
 		blue:SetVelocity(normal)
-		blue:SetDieTime(0.2)
+		blue:SetDieTime(0.7)
 		blue:SetStartAlpha(250)
 		blue:SetEndAlpha(100)
 		blue:SetStartSize(30)
 		blue:SetEndSize(5)
 		blue:SetRoll(roll)
-		blue:SetColor(255,120,120,1)
+		blue:SetColor(110,110,255,1)
 		
 	end
 end

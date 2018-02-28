@@ -48,7 +48,7 @@ function ENT:Initialize()
 	self.HoverMod = 80;
 	self.StartHover = 65;
 	self.StandbyHoverAmount = 20;
-	self.Bullet = CreateBulletStructure(100,"red");
+	self.Bullet = HALOCreateBulletStructure(100,"plasma");
 	
 	self.SpeederClass = 2
 	
@@ -108,26 +108,23 @@ if CLIENT then
 	end
 	
 	local View = {}
-	local function CalcView()
+	function CalcView()
 		
 		local p = LocalPlayer();
 		local self = p:GetNWEntity("HALOV_Prophet", NULL)
 		local DriverSeat = p:GetNWEntity("DriverSeat",NULL);
-		local PassengerSeat = p:GetNWEntity("PassengerSeat",NULL);
 
 		if(IsValid(self)) then
 
 			if(IsValid(DriverSeat)) then
-				if(DriverSeat:GetThirdPersonMode()) then
-					local pos = self:GetPos()+self:GetForward()*150+self:GetUp()*40;
-					local face = self:GetAngles() + Angle(0,180,0);
-					//local face = ((self:GetPos() + Vector(0,0,100))- pos):Angle();
+			    if(DriverSeat:GetThirdPersonMode()) then
+					local pos = self:GetPos()+LocalPlayer():GetAimVector():GetNormal()*-100+self:GetUp()*100+self:GetRight()*0;
+					local face = ((self:GetPos() + Vector(0,0,50))- pos):Angle();
 						View.origin = pos;
 						View.angles = face;
 					return View;
 				end
 			end
-
 		end
 	end
 	hook.Add("CalcView", "HALOV_ProphetView", CalcView)

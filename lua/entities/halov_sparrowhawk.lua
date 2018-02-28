@@ -48,11 +48,10 @@ function ENT:Initialize()
 	self.AccelSpeed = 10;
 	self.CanBack = true;
 	self.CanStrafe = true;
-	self.Cooldown = 2;
 	self.CanShoot = true;
 	self.DontOverheat = true;
 	self.Bullet = HALOCreateBulletStructure(300,"unsc");
-	self.FireDelay = 0.25;
+	self.FireDelay = 0.1;
 	self.NextBlast = 1;
 	self.ExitModifier = {x = 0, y = 300, z = 20};
     self.Hover = true;

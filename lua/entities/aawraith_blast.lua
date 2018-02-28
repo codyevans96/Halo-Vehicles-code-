@@ -3,7 +3,7 @@ ENT.RenderGroup = RENDERGROUP_BOTH
 ENT.Type = "anim"
 ENT.Base = "base_anim"
 
-ENT.PrintName = "Covenant Red Plasma Blast"
+ENT.PrintName = "Covenant AA Blast"
 ENT.Author = "Liam0102"
 ENT.Category = "Halo"
 ENT.Spawnable = false;
@@ -26,7 +26,7 @@ if SERVER then
 		self:SetNWInt("StartSize",self.StartSize or 205);
 		self:SetNWInt("EndSize",self.EndSize or 80);
 		
-		self.Damage = 60;
+		self.Damage = self.Damage or 500;
 
 	end
 	
@@ -47,7 +47,7 @@ if SERVER then
 			local pos = self:GetPos()+self:GetForward()*math.random(-self.Damage/2,self.Damage/2)+self:GetRight()*math.random(-self.Damage/2,self.Damage/2)
 			local fx = EffectData()
 				fx:SetOrigin(pos);
-			util.Effect("GunshipImpact",fx,true,true);
+			util.Effect("VortDispel",fx,true,true);
 		end
 		for k,v in pairs(ents.FindInSphere(self:GetPos(),self.Damage)) do
 			local dist = (self:GetPos() - v:GetPos()):Length();
@@ -85,13 +85,13 @@ if CLIENT then
 
 		local blue = self.FXEmitter:Add(sprite,self:GetPos())
 		blue:SetVelocity(normal)
-		blue:SetDieTime(0.2)
-		blue:SetStartAlpha(250)
-		blue:SetEndAlpha(100)
-		blue:SetStartSize(30)
-		blue:SetEndSize(5)
+		blue:SetDieTime(0.3)
+		blue:SetStartAlpha(50)
+		blue:SetEndAlpha(0)
+		blue:SetStartSize(80)
+		blue:SetEndSize(40)
 		blue:SetRoll(roll)
-		blue:SetColor(255,120,120,1)
+		blue:SetColor(35,255,115,1)
 		
 	end
 end

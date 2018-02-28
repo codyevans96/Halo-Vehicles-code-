@@ -235,8 +235,8 @@ function ENT:FireHALOV_PelicanBlast(pos,gravity,vel,dmg,white,size,snd)
 	
 	e.Damage = dmg or 600;
 	e.IsWhite = white or false;
-	e.StartSize = size or 20;
-	e.EndSize = size*0.75 or 15;
+	e.StartSize = 15;
+	e.EndSize = 5;
 	
 	local sound = snd or Sound("weapons/hornet_missle.wav");
 	

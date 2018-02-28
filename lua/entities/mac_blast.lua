@@ -38,7 +38,7 @@ if SERVER then
 		if(!ang) then
 			ang = e:GetForward();
 		end
-		phys:SetVelocity(ang*60000)
+		phys:SetVelocity(ang*6000)
 	end
 	
 	function ENT:PhysicsCollide(data, physobj)
@@ -78,20 +78,20 @@ if CLIENT then
 		local sprite;
 		local IsWhite = self:GetNWBool("White");
 		if(IsWhite) then
-			sprite = "sprites/white_blast";
+			sprite = "sprites/tfaenginered";
 		else
-			sprite = "sprites/white_blast";
+			sprite = "sprites/tfaenginered";
 		end
 
 		local blue = self.FXEmitter:Add(sprite,self:GetPos())
 		blue:SetVelocity(normal)
-		blue:SetDieTime(0.2)
-		blue:SetStartAlpha(155)
+		blue:SetDieTime(0.6)
+		blue:SetStartAlpha(205)
 		blue:SetEndAlpha(0)
 		blue:SetStartSize(StartSize)
 		blue:SetEndSize(EndSize)
 		blue:SetRoll(roll)
-		blue:SetColor(255,160,0,1)
+		blue:SetColor(155,255,55,1)
 		
 	end
 end

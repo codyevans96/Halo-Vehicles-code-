@@ -19,7 +19,7 @@ list.Set("HaloVehicles", ENT.PrintName, ENT);
 
 if SERVER then
 
-ENT.FireSound = Sound("weapons/beam.wav");
+ENT.FireSound = Sound("weapons/banshee_shoot.wav");
 ENT.NextUse = {Wings = CurTime(),Use = CurTime(),Fire = CurTime(),FireMain = CurTime()};
 
 AddCSLuaFile();
@@ -37,10 +37,8 @@ function ENT:Initialize()
 	self:SetNWInt("Health",self.StartHealth);
 	
 	self.WeaponLocations = {
-		Left = self:GetPos()+self:GetForward()*400+self:GetUp()*0+self:GetRight()*-8,
-		Right = self:GetPos()+self:GetForward()*400+self:GetUp()*0+self:GetRight()*8,
-		Top = self:GetPos()+self:GetForward()*400+self:GetUp()*8+self:GetRight()*0,
-		Bottom = self:GetPos()+self:GetForward()*400+self:GetUp()*-8+self:GetRight()*0,
+		Left = self:GetPos()+self:GetForward()*50+self:GetUp()*0+self:GetRight()*-110,
+		Right = self:GetPos()+self:GetForward()*50+self:GetUp()*0+self:GetRight()*110,
 	}
 	self.WeaponsTable = {};
 	self.BoostSpeed = 1200;
@@ -50,11 +48,12 @@ function ENT:Initialize()
 	self.CanBack = true;
 	self.CanStrafe = true;
 	self.Hover = true;
-	self.Cooldown = 2;
 	self.CanShoot = true;
 	self.DontOverheat = true;
-	self.Bullet = HALOCreateBulletStructure(50,"beam");
-	self.FireDelay = 1;
+	self.Bullet = HALOCreateBulletStructure(50,"plasma");
+	self.FireGroup = {"Left","Right",};
+	self.AlternateFire = true;
+	self.FireDelay = 0.1;
 	self.NextBlast = 1;
 	self.ExitModifier = {x = 0, y = 100, z = 20};
 
@@ -68,6 +67,40 @@ end
     
 function ENT:Exit(kill)
 	self.BaseClass.Exit(self,kill);
+end
+
+function ENT:Think()
+
+	if(self.Inflight) then
+		if(IsValid(self.Pilot)) then
+			if(self.Pilot:KeyDown(IN_ATTACK2)) then
+				local pos = self:GetPos()+self:GetForward()*150+self:GetUp()*20;
+				self:FireBlast(pos,false,8,300,false,40);
+			end
+		end
+	end
+	self.BaseClass.Think(self);
+end
+
+function ENT:FireBlast(pos,gravity,vel,dmg,white,size,snd)
+	if(self.NextUse.FireBlast < CurTime()) then
+		local e = ents.Create("vampire_blast");
+		
+		e.Damage = dmg or 600;
+		e.IsWhite = white or false;
+		e.StartSize = size or 20;
+		e.EndSize = e.StartSize*0.75 or 15;
+		local sound = snd or Sound("weapons/beam.wav");
+		e:SetPos(pos);
+		e:Spawn();
+		e:Activate();
+		e:Prepare(self,sound,gravity,vel);
+		e:SetColor(Color(120,120,255,1));
+		
+		self.NextUse.FireBlast = CurTime() + 2;
+		self:SetNWInt("FireBlast",self.NextUse.FireBlast)
+	end
+	
 end
 
 end

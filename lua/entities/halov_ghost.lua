@@ -127,13 +127,11 @@ if CLIENT then
 		local p = LocalPlayer();
 		local self = p:GetNWEntity("HALOV_Ghost", NULL)
 		local DriverSeat = p:GetNWEntity("DriverSeat",NULL);
-		local PassengerSeat = p:GetNWEntity("PassengerSeat",NULL);
-		if(IsValid(self)) then
 
+		if(IsValid(self)) then
 			if(IsValid(DriverSeat)) then
-				if(DriverSeat:GetThirdPersonMode()) then
-					local pos = self:GetPos()+self:GetForward()*270+self:GetUp()*100;
-					//local face = self:GetAngles() + Angle(0,180,0);
+			    if(DriverSeat:GetThirdPersonMode()) then
+					local pos = self:GetPos()+LocalPlayer():GetAimVector():GetNormal()*-200+self:GetUp()*150+self:GetRight()*0;
 					local face = ((self:GetPos() + Vector(0,0,100))- pos):Angle();
 						View.origin = pos;
 						View.angles = face;
@@ -143,24 +141,18 @@ if CLIENT then
 		end
 	end
 	hook.Add("CalcView", "HALOV_GhostView", CalcView)
-
-	
-	hook.Add( "ShouldDrawLocalPlayer", "HALOV_GhostDrawPlayerModel", function( p )
-		local self = p:GetNWEntity("HALOV_Ghost", NULL);
-		local DriverSeat = p:GetNWEntity("DriverSeat",NULL);
-		local PassengerSeat = p:GetNWEntity("PassengerSeat",NULL);
-		if(IsValid(self)) then
-			if(IsValid(DriverSeat)) then
-				if(DriverSeat:GetThirdPersonMode()) then
-					return true;
-				end
-			elseif(IsValid(PassengerSeat)) then
-				if(PassengerSeat:GetThirdPersonMode()) then
-					return true;
-				end
-			end
-		end
-	end);
+   
+    hook.Add( "ShouldDrawLocalPlayer", "HALOV_GhostDrawPlayerModel", function( p )
+        local self = p:GetNWEntity("HALOV_Ghost", NULL);
+        local DriverSeat = p:GetNWEntity("DriverSeat",NULL);
+        if(IsValid(self)) then
+            if(IsValid(DriverSeat)) then
+                if(DriverSeat:GetThirdPersonMode()) then
+                    return true;
+                end
+            end
+        end
+    end);
 	
 	function ENT:Effects()
 	

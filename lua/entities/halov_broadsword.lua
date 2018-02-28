@@ -112,8 +112,8 @@ function ENT:FireHALOV_BroadswordBlast(pos,gravity,vel,dmg,white,size,snd)
 	
 	e.Damage = dmg or 600;
 	e.IsWhite = white or false;
-	e.StartSize = size or 20;
-	e.EndSize = size*3 or 15;
+	e.StartSize = 15;
+	e.EndSize = 5;
 	
 	local sound = snd or Sound("weapons/rocket.wav");
 	
@@ -146,7 +146,7 @@ if CLIENT then
 		local self = p:GetNetworkedEntity("HALOV_Broadsword", NULL)
 		if(IsValid(self)) then
 			local fpvPos = self:GetPos()+self:GetUp()*-80+self:GetForward()*175;
-			View = HALOVehicleView(self,955,85,fpvPos,true);		
+			View = HALOVehicleView(self,955,55,fpvPos,true);		
 			return View;
 		end
 	end

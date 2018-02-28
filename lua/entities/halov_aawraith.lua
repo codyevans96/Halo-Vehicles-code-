@@ -2,7 +2,7 @@ ENT.RenderGroup = RENDERGROUP_BOTH
 ENT.Base = "halohover_base"
 ENT.Type = "vehicle"
  
-ENT.PrintName = "T-26 Wraith"
+ENT.PrintName = "T-52 AA Wraith"
 ENT.Author = "Cody Evans"
 --- BASE AUTHOR: Liam0102 ---
 ENT.Category = "Halo Vehicles: Covenant"
@@ -10,8 +10,8 @@ ENT.AutomaticFrameAdvance = true
 ENT.Spawnable = false;
 ENT.AdminOnly = false;
  
-ENT.Vehicle = "halov_wraith";
-ENT.EntModel = "models/helios/wraith/wraith_open.mdl";
+ENT.Vehicle = "halov_aawraith";
+ENT.EntModel = "models/helios/aawraith_base.mdl";
  
 ENT.StartHealth = 3000;
  
@@ -25,7 +25,7 @@ ENT.FireSound = Sound("weapons/spectre_shoot.wav");
  
 AddCSLuaFile();
 function ENT:SpawnFunction(pl, tr)
-    local e = ents.Create("halov_wraith");
+    local e = ents.Create("halov_aawraith");
     e:SetPos(tr.HitPos + Vector(0,0,10));
     e:SetAngles(Angle(0,pl:GetAimVector():Angle().Yaw+0,0));
     e:Spawn();
@@ -35,7 +35,7 @@ end
  
 function ENT:Initialize()
     self.BaseClass.Initialize(self);
-    local driverPos = self:GetPos()+self:GetUp()*75+self:GetForward()*-20+self:GetRight()*0;
+    local driverPos = self:GetPos()+self:GetUp()*75+self:GetForward()*-46+self:GetRight()*0;
     local driverAng = self:GetAngles()+Angle(0,-90,0);
     self:SpawnChairs(driverPos,driverAng,false)
    
@@ -56,7 +56,7 @@ function ENT:Initialize()
 	self.FireDelay = 0.25;
 	self.DontOverheat = true;
     self.CanBack = true;
-	self.CanShoot = true;
+	self.CanShoot = false;
 	self.AlternateFire = true;
     self.CannonLocation = self:GetPos()+self:GetUp()*100+self:GetForward()*50;
     self:SpawnCannon(self:GetAngles()+Angle(0,0,0));
@@ -70,16 +70,15 @@ end
  
 function ENT:FireBlast(pos,gravity,vel,ang)
     if(self.NextUse.FireBlast < CurTime()) then
-        local e = ents.Create("wraith_blast");
+        local e = ents.Create("aawraith_blast");
         e:SetPos(pos);
         e:Spawn();
         e:Activate();
         e:Prepare(self,Sound("weapons/wraith_shoot.wav"),gravity,vel,ang);
         e:SetColor(Color(255,255,255,1));
        
-        self.NextUse.FireBlast = CurTime() + 3;
+        self.NextUse.FireBlast = CurTime() + 0.3;
     end
-   
 end
  
 function ENT:Enter(p,driver)
@@ -87,35 +86,12 @@ function ENT:Enter(p,driver)
     self:Rotorwash(false);
 end
  
-hook.Add("PlayerEnteredVehicle","HALOV_WraithSeatEnter", function(p,v)
-    if(IsValid(v) and IsValid(p)) then
-        if(v.IsHALOV_WraithSeat) then
-            p:SetNetworkedEntity("HALOV_Wraith",v:GetParent());
-            p:SetNetworkedEntity("HALOV_WraithSeat",v);
-            p:SetAllowWeaponsInVehicle( false )
-        end
-    end
-end);
- 
-hook.Add("PlayerLeaveVehicle", "HALOV_WraithSeatExit", function(p,v)
-    if(IsValid(p) and IsValid(v)) then
-        if(v.IsHALOV_WraithSeat) then
-            local e = v.HALOV_Wraith;
-            if(IsValid(e)) then
-                p:SetEyeAngles(e:GetAngles()+Angle(0,0,0))
-            end
-            p:SetNetworkedEntity("HALOV_WraithSeat",NULL);
-            p:SetNetworkedEntity("HALOV_Wraith",NULL);
-        end
-    end
-end);
- 
 function ENT:SpawnCannon(ang)
    
     local e = ents.Create("prop_physics");
-    e:SetPos(self:GetPos()+self:GetUp()*130+self:GetForward()*-150+self:GetRight()*1.5);
+    e:SetPos(self:GetPos()+self:GetUp()*110+self:GetForward()*-175+self:GetRight()*0);
     e:SetAngles(ang);
-    e:SetModel("models/helios/wraith/wraith_gun.mdl");
+    e:SetModel("models/helios/aawraith_cannon.mdl");
     e:SetParent(self);
     e:Spawn();
     e:Activate();
@@ -136,14 +112,16 @@ function ENT:Think()
            
             local aim = self.Pilot:GetAimVector():Angle();
             local p = aim.p*1;
-		    if(p <= 70 and p >= 8) then
+            if(p <= 70 and p >= 8) then
 				p = 8;
 			elseif(p >= -150 and p <= -30) then
 				p = -30;
 		    end
-            self.Cannon:SetAngles(Angle(p,aim.y,0));
+            self.Cannon:SetAngles(Angle(p,aim.y+0,0));
             if(self.Pilot:KeyDown(IN_ATTACK2)) then
-                self:FireBlast(self.Cannon:GetPos()+self.Cannon:GetForward()*0+self:GetUp()*15,true,100,self.Cannon:GetAngles():Forward());
+                self:FireBlast(self.Cannon:GetPos()+self.Cannon:GetForward()*0+self:GetUp()*25+self:GetRight()*55,false,75,self.Cannon:GetAngles():Forward());
+            elseif(self.Pilot:KeyDown(IN_ATTACK)) then
+                self:FireBlast(self.Cannon:GetPos()+self.Cannon:GetForward()*0+self:GetUp()*25+self:GetRight()*-55,false,75,self.Cannon:GetAngles():Forward());
             end
 			lastY = aim.y;
 			self:NextThink(CurTime());
@@ -220,7 +198,7 @@ if CLIENT then
 	function CalcView()
 		
 		local p = LocalPlayer();
-		local self = p:GetNWEntity("HALOV_Wraith", NULL)
+		local self = p:GetNWEntity("HALOV_AAWraith", NULL)
 		local DriverSeat = p:GetNWEntity("DriverSeat",NULL);
 
 		if(IsValid(self)) then
@@ -236,10 +214,10 @@ if CLIENT then
 			end
 		end
 	end
-	hook.Add("CalcView", "HALOV_WraithView", CalcView)
+	hook.Add("CalcView", "HALOV_AAWraithView", CalcView)
    
-    hook.Add( "ShouldDrawLocalPlayer", "HALOV_WraithDrawPlayerModel", function( p )
-        local self = p:GetNWEntity("HALOV_Wraith", NULL);
+    hook.Add( "ShouldDrawLocalPlayer", "HALOV_AAWraithDrawPlayerModel", function( p )
+        local self = p:GetNWEntity("HALOV_AAWraith", NULL);
         local DriverSeat = p:GetNWEntity("DriverSeat",NULL);
         if(IsValid(self)) then
             if(IsValid(DriverSeat)) then
@@ -251,14 +229,12 @@ if CLIENT then
     end);
 	
 	function ENT:Effects()
-	
-
 		local p = LocalPlayer();
 		local roll = math.Rand(-45,45);
 		local normal = (self.Entity:GetRight() * -1):GetNormalized();
 		local FWD = self:GetRight();
 		local id = self:EntIndex();
-		for k,v in pairs(self.SmallHALOV_WraithPos) do
+		for k,v in pairs(self.SmallHALOV_AAWraithPos) do
 			
 			local blue = self.FXEmitter:Add("sprites/bluecore",v+FWD*25)
 			blue:SetVelocity(normal)
@@ -269,9 +245,8 @@ if CLIENT then
 			blue:SetEndSize(1)
 			blue:SetRoll(roll)
 			blue:SetColor(255,255,255)
-
 		end
-		for k,v in pairs(self.BigHALOV_WraithPos) do
+		for k,v in pairs(self.BigHALOV_AAWraithPos) do
 			
 			local blue = self.FXEmitter:Add("sprites/bluecore",v+FWD*25)
 			blue:SetVelocity(normal)
@@ -282,36 +257,32 @@ if CLIENT then
 			blue:SetEndSize(5)
 			blue:SetRoll(roll)
 			blue:SetColor(255,255,255)
-
 		end
 	end
 	
 	function ENT:Think()
-	
-		
-		
 		local p = LocalPlayer();
 		local Flying = self:GetNWBool("Flying".. self.Vehicle);
 		if(Flying) then
-			self.SmallHALOV_WraithPos = {
-				self:GetPos()+self:GetRight()*-148.5+self:GetUp()*26+self:GetForward()*-12,
-				self:GetPos()+self:GetRight()*99+self:GetUp()*26+self:GetForward()*-12,
-				self:GetPos()+self:GetRight()*-158.5+self:GetUp()*16.5+self:GetForward()*-12,
-				self:GetPos()+self:GetRight()*109+self:GetUp()*16.5+self:GetForward()*-12,
+			self.SmallHALOV_AAWraithPos = {
+				self:GetPos()+self:GetRight()*-150.5+self:GetUp()*21+self:GetForward()*-40,
+				self:GetPos()+self:GetRight()*98+self:GetUp()*21+self:GetForward()*-40,
+				self:GetPos()+self:GetRight()*-161.5+self:GetUp()*12+self:GetForward()*-40,
+				self:GetPos()+self:GetRight()*108+self:GetUp()*12+self:GetForward()*-40,
 			}
-			self.BigHALOV_WraithPos = {
-				self:GetPos()+self:GetRight()*-24.8+self:GetUp()*74+self:GetForward()*-195,
+			self.BigHALOV_AAWraithPos = {
+				self:GetPos()+self:GetRight()*-26.8+self:GetUp()*72+self:GetForward()*-225,
 			}
 			self:Effects();
 		end
 		self.BaseClass.Think(self)
 	end
    
-    function HALOV_WraithReticle()
+    function HALOV_AAWraithReticle()
    
         local p = LocalPlayer();
-        local Flying = p:GetNWBool("FlyingHALOV_Wraith");
-        local self = p:GetNWEntity("HALOV_Wraith");
+        local Flying = p:GetNWBool("FlyingHALOV_AAWraith");
+        local self = p:GetNWEntity("HALOV_AAWraith");
         if(Flying and IsValid(self)) then      
             local WeaponsPos = {self:GetPos()};
            
@@ -321,7 +292,7 @@ if CLIENT then
  
         end
     end
-    hook.Add("HUDPaint", "HALOV_WraithReticle", HALOV_WraithReticle)
+    hook.Add("HUDPaint", "HALOV_AAWraithReticle", HALOV_AAWraithReticle)
    
    
 end

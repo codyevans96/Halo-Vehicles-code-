@@ -29,7 +29,7 @@ AddCSLuaFile();
 function ENT:SpawnFunction(pl, tr)
 	local e = ents.Create("halov_longsword");
 	e:SetPos(tr.HitPos + Vector(0,0,10));
-	e:SetAngles(Angle(0,pl:GetAimVector():Angle().Yaw,0));
+	e:SetAngles(Angle(0,pl:GetAimVector():Angle().Yaw+180,0));
 	e:Spawn();
 	e:Activate();
 	return e;
@@ -207,8 +207,8 @@ function ENT:FireHALOV_LongswordBlast(pos,gravity,vel,dmg,white,size,snd)
 		
 		e.Damage = dmg or 600;
 		e.IsWhite = white or false;
-		e.StartSize = size or 40;
-		e.EndSize = e.StartSize*5 or 15;
+		e.StartSize = 30;
+		e.EndSize = 5;
 		
 		
 		local sound = snd or Sound("weapons/hornet_missle.wav");

@@ -199,10 +199,10 @@ function ENT:Think()
                     self.BlastPositions = {
                         self:GetPos() + self:GetForward() * 380 + self:GetRight() * 0 + self:GetUp() * 10, //1
                     }
-                    self:FireHALOV_PhantomBlast(self.BlastPositions[self.NextBlast], false, 50, 50, true, 8, Sound("weapons/phantom_shoot.wav"));
+                    self:FireHALOV_PhantomBlast(self.BlastPositions[self.NextBlast], false, 160, 160, true, 8, Sound("weapons/phantom_shoot.wav"));
 					self.NextBlast = self.NextBlast + 1;
 					if(self.NextBlast == 2) then
-						self.NextUse.FireBlast = CurTime()+0.45;
+						self.NextUse.FireBlast = CurTime()+0.40;
 						self:SetNWBool("OutOfMissiles",true);
 						self:SetNWInt("FireBlast",self.NextUse.FireBlast)
 						self.NextBlast = 1;
@@ -224,7 +224,7 @@ end
 
 function ENT:FireHALOV_PhantomBlast(pos,gravity,vel,dmg,white,size,snd)
 	if(self.NextUse.FireBlast < CurTime()) then
-		local e = ents.Create("shadow_blast");
+		local e = ents.Create("shadow2_blast");
 		
 		e.Damage = dmg or 600;
 		e.IsWhite = white or false;
@@ -360,8 +360,7 @@ if CLIENT then
 		
 		if(Flying) then
 			if(IsValid(self)) then
-				local fpvPos = self:GetPos()+self:GetUp()*155+self:GetForward()*210;
-				View = HALOVehicleView(self,1050,530,fpvPos,true);		
+				View = HALOVehicleView(self,1250,630,fpvPos,true);		
 				return View;
 			end
 		elseif(Sitting) then
